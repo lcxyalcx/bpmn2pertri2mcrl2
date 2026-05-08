@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pnml xmlns="http://www.pnml.org/version-2009/grammar/pnml">
+  <net id="pizza" type="http://www.pnml.org/version-2009/grammar/ptnet">
+    <place id="p_order">
+      <name><text>Order</text></name>
+      <initialMarking><text>1</text></initialMarking>
+    </place>
+    <place id="p_prepare">
+      <name><text>Prepare</text></name>
+      <initialMarking><text>0</text></initialMarking>
+    </place>
+    <place id="p_deliver">
+      <name><text>Deliver</text></name>
+      <initialMarking><text>0</text></initialMarking>
+    </place>
+
+    <transition id="t_make">
+      <name><text>MakePizza</text></name>
+    </transition>
+    <transition id="t_ship">
+      <name><text>ShipPizza</text></name>
+    </transition>
+
+    <arc id="a1" source="p_order" target="t_make"/>
+    <arc id="a2" source="t_make" target="p_prepare"/>
+    <arc id="a3" source="p_prepare" target="t_ship"/>
+    <arc id="a4" source="t_ship" target="p_deliver"/>
+  </net>
+</pnml>
