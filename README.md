@@ -44,6 +44,50 @@ python bpmn2mcrl2_web.py examples/pizza.bpmn -o examples/pizza_web.mcrl2
 - `examples/pizza_web.mcrl2`：端到端转换结果
 - 该结果包含 `Place` 枚举、`Marking` 初始状态、`fire_*` 动作与更新函数
 
+## 🖼️ 可视化每一步（适合 GitHub 展示）
+
+### 1) 转换流程总览（Mermaid）
+
+```mermaid
+flowchart LR
+    A[BPMN: examples/pizza.bpmn] --> B[bpmn2petrinet.com 模块]
+    B --> C[PNML: 中间结果]
+    C --> D[pnml2mcrl2.py]
+    D --> E[mCRL2: examples/pizza_web.mcrl2]
+```
+
+### 2) Pizza Petri Net 结构（Graphviz DOT）
+
+> 对应 `examples/pizza.pnml` 的逻辑结构，可用 Graphviz 渲染
+
+```dot
+digraph PizzaPetriNet {
+  rankdir=LR;
+  node [shape=circle];
+  p_order [label="Order\n(tokens=1)"];
+  p_prepare [label="Prepare\n(tokens=0)"];
+  p_deliver [label="Deliver\n(tokens=0)"];
+
+  node [shape=box];
+  t_make [label="MakePizza"];
+  t_ship [label="ShipPizza"];
+
+  p_order -> t_make;
+  t_make -> p_prepare;
+  p_prepare -> t_ship;
+  t_ship -> p_deliver;
+}
+```
+
+### 3) mCRL2 结构示意（动作与状态）
+
+- **Place 枚举**：`p_0, p_1, p_2`
+- **初始标记**：`init(p_0)=1, init(p_1)=0, init(p_2)=0`
+- **动作**：`fire_t_0`（MakePizza），`fire_t_1`（ShipPizza）
+- **状态演化**：
+  - `fire_t_0`：`Order -> Prepare`
+  - `fire_t_1`：`Prepare -> Deliver`
+
 ### 2) 运行测试
 
 ```bash
