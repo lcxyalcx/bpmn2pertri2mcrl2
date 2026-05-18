@@ -1,0 +1,16 @@
+digraph PizzaPetriNet {
+  rankdir=LR;
+  node [shape=circle];
+  p_order [label="Order\n(tokens=1)"];
+  p_prepare [label="Prepare\n(tokens=0)"];
+  p_deliver [label="Deliver\n(tokens=0)"];
+
+  node [shape=box];
+  t_make [label="MakePizza"];
+  t_ship [label="ShipPizza"];
+
+  p_order -> t_make;
+  t_make -> p_prepare;
+  p_prepare -> t_ship;
+  t_ship -> p_deliver;
+}

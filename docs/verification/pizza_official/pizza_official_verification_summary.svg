@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="554" viewBox="0 0 980 554">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="32" y="42" font-family="Helvetica" font-size="24" font-weight="700">Official Pizza verification summary</text>
+<text x="32" y="70" font-family="Helvetica" font-size="14" fill="#475569">Green means the formula result matches the documented expectation.</text>
+<rect x="32" y="98" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="120" font-family="Helvetica" font-size="15" font-weight="700">Order can reach vendor</text>
+<text x="52" y="140" font-family="Helvetica" font-size="13" fill="#334155">result=true · expected=true · After order_a_pizza, order_received remains possible.</text>
+<rect x="32" y="172" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="194" font-family="Helvetica" font-size="15" font-weight="700">Delivery is reachable</text>
+<text x="52" y="214" font-family="Helvetica" font-size="13" fill="#334155">result=true · expected=true · The vendor can bake and deliver the pizza.</text>
+<rect x="32" y="246" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="268" font-family="Helvetica" font-size="15" font-weight="700">Payment is reachable</text>
+<text x="52" y="288" font-family="Helvetica" font-size="13" fill="#334155">result=true · expected=true · The local PNML conversion lets payment consume the money message.</text>
+<rect x="32" y="320" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="342" font-family="Helvetica" font-size="15" font-weight="700">Ask/calm loop is reachable</text>
+<text x="52" y="362" font-family="Helvetica" font-size="13" fill="#334155">result=true · expected=true · The timeout/question/customer-calming loop can complete.</text>
+<rect x="32" y="394" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="416" font-family="Helvetica" font-size="15" font-weight="700">Joined end is reachable</text>
+<text x="52" y="436" font-family="Helvetica" font-size="13" fill="#334155">result=true · expected=true · Both participant processes can reach the joined end transition.</text>
+<rect x="32" y="468" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="490" font-family="Helvetica" font-size="15" font-weight="700">No deadlock</text>
+<text x="52" y="510" font-family="Helvetica" font-size="13" fill="#334155">result=false · expected=false · Deadlock is expected after both participant processes finish.</text>
+</svg>

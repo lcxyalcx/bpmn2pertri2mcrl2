@@ -1,0 +1,12 @@
+flowchart LR
+  subgraph Marking
+    M[Marking m] --> P0[p_0: Order]
+    M --> P1[p_1: Prepare]
+    M --> P2[p_2: Deliver]
+  end
+
+  P0 -->|guard m(p_0)>0| T0[fire_t_0]
+  T0 -->|update: p_0-1, p_1+1| P1
+
+  P1 -->|guard m(p_1)>0| T1[fire_t_1]
+  T1 -->|update: p_1-1, p_2+1| P2

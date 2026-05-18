@@ -48,6 +48,10 @@ def _read_text(element: ET.Element | None) -> str:
     return element.text.strip()
 
 
+def _comment_text(value: str) -> str:
+    return value.replace("\n", " ").replace("\r", " ").strip()
+
+
 def _parse_initial_marking(place: ET.Element) -> int:
     for child in place.iter():
         if _strip_namespace(child.tag) == "initialMarking":
@@ -87,14 +91,55 @@ def parse_pnml(path: pathlib.Path) -> Net:
 
 
 def _sanitize_identifier(value: str) -> str:
-    value = value.strip()
+    value = value.strip().lower()
     value = re.sub(r"[^A-Za-z0-9_]", "_", value)
     value = re.sub(r"_+", "_", value)
+    value = value.strip("_")
     if not value:
         value = "x"
-    if value[0].isdigit():
-        value = f"x_{value}"
+    if not value[0].isalpha():
+        value = f"a_{value}"
     return value
+
+
+_MCRL2_KEYWORDS = {
+    "act",
+    "allow",
+    "block",
+    "comm",
+    "cons",
+    "delay",
+    "delta",
+    "div",
+    "end",
+    "eqn",
+    "exists",
+    "forall",
+    "glob",
+    "hide",
+    "if",
+    "in",
+    "init",
+    "lambda",
+    "map",
+    "mod",
+    "mu",
+    "nu",
+    "proc",
+    "rename",
+    "sort",
+    "struct",
+    "sum",
+    "val",
+    "var",
+    "where",
+    "whr",
+    "yaled",
+}
+
+
+def _is_descriptive_transition_name(transition: Transition) -> bool:
+    return bool(transition.name.strip()) and transition.name.strip() != transition.tid
 
 
 def _build_place_mapping(net: Net) -> dict[str, str]:
@@ -108,6 +153,39 @@ def _build_transition_mapping(net: Net) -> dict[str, str]:
     mapping: dict[str, str] = {}
     for index, tid in enumerate(sorted(net.transitions.keys())):
         mapping[tid] = f"t_{index}"
+    return mapping
+
+
+def _build_action_mapping(
+    net: Net,
+    transition_map: dict[str, str],
+    semantic_actions: bool,
+) -> dict[str, str]:
+    if not semantic_actions:
+        return {tid: f"fire_{alias}" for tid, alias in transition_map.items()}
+
+    used: set[str] = set()
+    mapping: dict[str, str] = {}
+
+    for tid, alias in transition_map.items():
+        transition = net.transitions[tid]
+        source_name = (
+            transition.name
+            if _is_descriptive_transition_name(transition)
+            else f"transition_{transition.tid}"
+        )
+        base = _sanitize_identifier(source_name)
+        if base in _MCRL2_KEYWORDS:
+            base = f"a_{base}"
+
+        action = base
+        suffix = 2
+        while action in used:
+            action = f"{base}_{suffix}"
+            suffix += 1
+        used.add(action)
+        mapping[tid] = action
+
     return mapping
 
 
@@ -129,6 +207,22 @@ def _guard_expression(place_ids: list[str], place_map: dict[str, str]) -> str:
         return "true"
     guard_parts = [f"m({place_map[pid]}) > 0" for pid in place_ids]
     return " && ".join(guard_parts)
+
+
+def _bounded_guard_expression(
+    pre_places: list[str],
+    post_places: list[str],
+    place_map: dict[str, str],
+    max_place_tokens: int | None,
+) -> str:
+    guard_parts: list[str] = []
+    if pre_places:
+        guard_parts.extend(f"m({place_map[pid]}) > 0" for pid in pre_places)
+    if max_place_tokens is not None:
+        guard_parts.extend(
+            f"m({place_map[pid]}) < {max_place_tokens}" for pid in post_places
+        )
+    return " && ".join(guard_parts) if guard_parts else "true"
 
 
 def _update_expression(
@@ -161,26 +255,59 @@ def _update_expression(
     return f"lambda p: Place . {build_case(ordered_places)}"
 
 
-def generate_mcrl2(net: Net) -> str:
+def generate_mcrl2(
+    net: Net,
+    semantic_actions: bool = True,
+    max_place_tokens: int | None = None,
+) -> str:
+    if max_place_tokens is not None and max_place_tokens < 1:
+        raise ValueError("max_place_tokens must be at least 1")
+
     place_map = _build_place_mapping(net)
     transition_map = _build_transition_mapping(net)
+    action_map = _build_action_mapping(net, transition_map, semantic_actions)
     pre, post = _collect_pre_post(net)
+
+    mapping_lines = [
+        f"% Source Petri net: {len(net.places)} places, "
+        f"{len(net.transitions)} transitions, {len(net.arcs)} arcs",
+        f"% Max place tokens: {max_place_tokens if max_place_tokens is not None else 'unbounded'}",
+        "%",
+        "% Place mapping:",
+    ]
+    for pid, alias in place_map.items():
+        place = net.places[pid]
+        mapping_lines.append(
+            f"%   {alias} = {_comment_text(place.name)} ({_comment_text(place.pid)}), "
+            f"initial={place.tokens}"
+        )
+    mapping_lines.append("%")
+    mapping_lines.append("% Transition mapping:")
+    for tid, alias in transition_map.items():
+        transition = net.transitions[tid]
+        pre_aliases = ", ".join(place_map[pid] for pid in pre[tid]) or "-"
+        post_aliases = ", ".join(place_map[pid] for pid in post[tid]) or "-"
+        mapping_lines.append(
+            f"%   {alias}/{action_map[tid]} = {_comment_text(transition.name)} "
+            f"({_comment_text(transition.tid)}), pre=[{pre_aliases}], post=[{post_aliases}]"
+        )
 
     place_lines = []
     for pid, alias in place_map.items():
-        place = net.places[pid]
-        place_lines.append(f"  {alias} /* {place.name} ({place.pid}) */")
+        place_lines.append(f"  {alias}")
 
     place_sort = " |\n".join(place_lines)
 
-    init_lines = [f"init({alias}) = {net.places[pid].tokens};" for pid, alias in place_map.items()]
+    init_lines = [
+        f"m_init({alias}) = {net.places[pid].tokens};" for pid, alias in place_map.items()
+    ]
 
-    act_lines = [f"fire_{transition_map[tid]}" for tid in transition_map]
+    act_lines = [action_map[tid] for tid in transition_map]
 
     update_lines: list[str] = []
     for tid, alias in transition_map.items():
         update_lines.append(
-            "eqn update_{alias}(m) = {expr};".format(
+            "update_{alias}(m) = {expr};".format(
                 alias=alias,
                 expr=_update_expression(place_map, pre[tid], post[tid]),
             )
@@ -188,44 +315,63 @@ def generate_mcrl2(net: Net) -> str:
 
     proc_lines: list[str] = []
     for tid, alias in transition_map.items():
-        guard = _guard_expression(pre[tid], place_map)
+        guard = _bounded_guard_expression(
+            pre[tid],
+            post[tid],
+            place_map,
+            max_place_tokens,
+        )
         proc_lines.append(
-            f"({guard}) -> fire_{alias} . P(update_{alias}(m))"
+            f"({guard}) -> {action_map[tid]} . P(update_{alias}(m))"
         )
 
     proc_body = " +\n  ".join(proc_lines) if proc_lines else "delta"
 
+    map_lines = ["  m_init: Marking;"]
+    map_lines.extend(
+        [f"  update_{alias}: Marking -> Marking;" for alias in transition_map.values()]
+    )
+
     lines = [
         "% Auto-generated by pnml2mcrl2.py",
+        *mapping_lines,
         "sort Place = struct",
         place_sort + ";",
-        "sort Marking = Place -> Nat;",
-        "map init : Marking;",
+        "sort Marking = Place -> Int;",
+        "map",
+        "\n".join(map_lines),
+        "var",
+        "  m: Marking;",
         "eqn",
         "  " + "\n  ".join(init_lines),
-        "map",  # map block for update functions
-        "  " + "\n  ".join([f"update_{alias}: Marking -> Marking" for alias in transition_map.values()]) + ";",
-        "eqn",
         "  " + "\n  ".join(update_lines),
         "act",
         "  " + ", ".join(act_lines) + ";",
         "proc",
         "  P(m: Marking) =",
         "  " + proc_body + ";",
-        "init P(init);",
+        "init P(m_init);",
         "",
     ]
 
     return "\n".join(lines)
 
 
-def convert_file(input_path: pathlib.Path, output_path: pathlib.Path) -> None:
+def convert_file(
+    input_path: pathlib.Path,
+    output_path: pathlib.Path,
+    semantic_actions: bool = True,
+    max_place_tokens: int | None = None,
+) -> None:
     net = parse_pnml(input_path)
     if not net.places:
         raise ValueError("No places found in PNML")
     if not net.transitions:
         raise ValueError("No transitions found in PNML")
-    output_path.write_text(generate_mcrl2(net), encoding="utf-8")
+    output_path.write_text(
+        generate_mcrl2(net, semantic_actions, max_place_tokens),
+        encoding="utf-8",
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -237,6 +383,16 @@ def build_parser() -> argparse.ArgumentParser:
         type=pathlib.Path,
         help="Output mCRL2 file (default: input name with .mcrl2)",
     )
+    parser.add_argument(
+        "--generic-actions",
+        action="store_true",
+        help="Use fire_t_i action names instead of semantic transition names",
+    )
+    parser.add_argument(
+        "--max-place-tokens",
+        type=int,
+        help="Bound generated transitions so no place can exceed this token count",
+    )
     return parser
 
 
@@ -246,7 +402,12 @@ def main() -> None:
     output = args.output
     if output is None:
         output = args.input.with_suffix(".mcrl2")
-    convert_file(args.input, output)
+    convert_file(
+        args.input,
+        output,
+        semantic_actions=not args.generic_actions,
+        max_place_tokens=args.max_place_tokens,
+    )
 
 
 if __name__ == "__main__":

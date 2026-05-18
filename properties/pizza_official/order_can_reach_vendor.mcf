@@ -1,0 +1,2 @@
+% After the customer orders a pizza, the vendor can receive that order.
+[true*.order_a_pizza]<true*.order_received>true

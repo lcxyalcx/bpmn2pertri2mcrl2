@@ -1,0 +1,16 @@
+digraph G {
+center = TRUE;
+mclimit = 10.0;
+nodesep = 0.05;
+node [ width=0.25, height=0.25, label="" ];
+s0 [ peripheries=2 ];
+s0 [label="(m_init)"];
+s1 [label="(lambda p16: Place. if(p16 == p_0, 1, if(p16 == p_1, 0, if(p16 == p_2, 0, if(p16 == p_3, 0, if(p16 == p_4, 0, m_init(p16)))))))"];
+s2 [label="(lambda p13: Place. if(p13 == p_0, 0, if(p13 == p_1, 1, if(p13 == p_2, 0, if(p13 == p_3, 0, if(p13 == p_4, 0, if(p13 == p_0, 1, if(p13 == p_1, 0, if(p13 == p_2, 0, if(p13 == p_3, 0, if(p13 == p_4, 0, m_init(p13))))))))))))"];
+s3 [label="(lambda p10: Place. if(p10 == p_0, 0, if(p10 == p_1, 0, if(p10 == p_2, 1, if(p10 == p_3, 0, if(p10 == p_4, 0, if(p10 == p_0, 0, if(p10 == p_1, 1, if(p10 == p_2, 0, if(p10 == p_3, 0, if(p10 == p_4, 0, if(p10 == p_0, 1, if(p10 == p_1, 0, if(p10 == p_2, 0, if(p10 == p_3, 0, if(p10 == p_4, 0, m_init(p10)))))))))))))))))"];
+s4 [label="(lambda p19: Place. if(p19 == p_0, 0, if(p19 == p_1, 0, if(p19 == p_2, 0, if(p19 == p_3, 1, if(p19 == p_4, 0, if(p19 == p_0, 0, if(p19 == p_1, 0, if(p19 == p_2, 1, if(p19 == p_3, 0, if(p19 == p_4, 0, if(p19 == p_0, 0, if(p19 == p_1, 1, if(p19 == p_2, 0, if(p19 == p_3, 0, if(p19 == p_4, 0, if(p19 == p_0, 1, if(p19 == p_1, 0, if(p19 == p_2, 0, if(p19 == p_3, 0, if(p19 == p_4, 0, m_init(p19))))))))))))))))))))))"];
+s0->s1[label="fire_t_1"];
+s1->s2[label="fire_t_2"];
+s2->s3[label="fire_t_3"];
+s3->s4[label="fire_t_0"];
+}

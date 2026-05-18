@@ -1,0 +1,69 @@
+{
+  "bounded_model": "docs/verification/pizza_official/pizza_official_bounded.mcrl2",
+  "max_place_tokens": 1,
+  "max_lts_states": 200,
+  "lps": "docs/verification/pizza_official/pizza_official_bounded.lps",
+  "lts": "docs/verification/pizza_official/pizza_official_bounded.lts",
+  "lts_dot": "docs/verification/pizza_official/pizza_official_bounded_lts.dot",
+  "lts_aut": "docs/verification/pizza_official/pizza_official_bounded_lts.aut",
+  "lts_svg": "docs/verification/pizza_official/pizza_official_bounded_lts.svg",
+  "summary_svg": "docs/verification/pizza_official/pizza_official_verification_summary.svg",
+  "lts_info": {
+    "Number of states": "200",
+    "Number of action labels": "18 (including a tau label)",
+    "Number of transitions": "199",
+    "Number of state labels": "200",
+    "LTS is deterministic": "yes",
+    "This lts has no probabilistic states": "yes"
+  },
+  "properties": [
+    {
+      "file": "properties/pizza_official/order_can_reach_vendor.mcf",
+      "title": "Order can reach vendor",
+      "passed": true,
+      "expected": true,
+      "matches_expected": true,
+      "note": "After order_a_pizza, order_received remains possible."
+    },
+    {
+      "file": "properties/pizza_official/delivery_reachable.mcf",
+      "title": "Delivery is reachable",
+      "passed": true,
+      "expected": true,
+      "matches_expected": true,
+      "note": "The vendor can bake and deliver the pizza."
+    },
+    {
+      "file": "properties/pizza_official/payment_reachable.mcf",
+      "title": "Payment is reachable",
+      "passed": true,
+      "expected": true,
+      "matches_expected": true,
+      "note": "The local PNML conversion lets payment consume the money message."
+    },
+    {
+      "file": "properties/pizza_official/ask_calm_loop_reachable.mcf",
+      "title": "Ask/calm loop is reachable",
+      "passed": true,
+      "expected": true,
+      "matches_expected": true,
+      "note": "The timeout/question/customer-calming loop can complete."
+    },
+    {
+      "file": "properties/pizza_official/end_reachable.mcf",
+      "title": "Joined end is reachable",
+      "passed": true,
+      "expected": true,
+      "matches_expected": true,
+      "note": "Both participant processes can reach the joined end transition."
+    },
+    {
+      "file": "properties/pizza_official/no_deadlock.mcf",
+      "title": "No deadlock",
+      "passed": false,
+      "expected": false,
+      "matches_expected": true,
+      "note": "Deadlock is expected after both participant processes finish."
+    }
+  ]
+}
