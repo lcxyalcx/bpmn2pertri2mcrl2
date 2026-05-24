@@ -17,7 +17,10 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from bpmn2pnml_local import (  # noqa: E402
+    CONTAINER_TAGS,
     FLOW_NODE_TAGS,
+    FLOW_NODE_XML_TAGS,
+    TASK_TAGS,
     convert_bpmn_to_pn,
     parse_bpmn,
 )
@@ -26,19 +29,14 @@ from pnml2mcrl2 import convert_file as convert_pnml_to_mcrl2, parse_pnml  # noqa
 SUPPORTED_FLOWS = {"sequenceFlow", "messageFlow"}
 
 UNSUPPORTED_FLOW_NODES: dict[str, str] = {
-    "subProcess": "子流程未展开",
-    "callActivity": "调用活动未建模",
-    "boundaryEvent": "边界事件未建模",
-    "serviceTask": "仅识别 generic task，不识别 serviceTask",
-    "userTask": "仅识别 generic task，不识别 userTask",
-    "scriptTask": "仅识别 generic task，不识别 scriptTask",
-    "manualTask": "仅识别 generic task，不识别 manualTask",
-    "businessRuleTask": "仅识别 generic task，不识别 businessRuleTask",
-    "sendTask": "仅识别 generic task，不识别 sendTask",
-    "receiveTask": "仅识别 generic task，不识别 receiveTask",
-    "transaction": "事务未建模",
-    "adHocSubProcess": "临时子流程未建模",
-    "eventSubProcess": "事件子流程未建模",
+    "globalTask": "全局任务未建模",
+    "globalChoreographyTask": "编排任务未建模",
+    "choreographyTask": "编排任务未建模",
+    "conversation": "会话未建模",
+}
+
+UNSUPPORTED_WITH_WARNING: dict[str, str] = {
+    "multiInstanceLoopCharacteristics": "检测到多实例，当前按单实例转换",
 }
 
 IGNORED_BPMN_TAGS = {
@@ -78,6 +76,9 @@ IGNORED_BPMN_TAGS = {
     "compensateEventDefinition",
     "linkEventDefinition",
     "terminateEventDefinition",
+    "multiInstanceLoopCharacteristics",
+    "standardLoopCharacteristics",
+    "loopCharacteristics",
 }
 
 
@@ -132,8 +133,14 @@ def _scan_bpmn_elements(bpmn_path: pathlib.Path) -> dict[str, int]:
 
 
 def _classify_element(tag: str) -> tuple[str, str]:
-    if tag in FLOW_NODE_TAGS or tag in SUPPORTED_FLOWS:
+    if tag in FLOW_NODE_XML_TAGS or tag in FLOW_NODE_TAGS or tag in SUPPORTED_FLOWS:
         return "supported", ""
+    if tag in CONTAINER_TAGS:
+        return "supported", "子流程容器，展开内部节点"
+    if tag in TASK_TAGS:
+        return "supported", "专用任务类型，映射为 task"
+    if tag in UNSUPPORTED_WITH_WARNING:
+        return "warning", UNSUPPORTED_WITH_WARNING[tag]
     if tag in UNSUPPORTED_FLOW_NODES:
         return "unsupported", UNSUPPORTED_FLOW_NODES[tag]
     if tag in IGNORED_BPMN_TAGS:
@@ -226,6 +233,8 @@ def analyze_bpmn(bpmn_path: pathlib.Path, timeout: int = 120) -> CompatibilityRe
             report.blocking_issues.append(
                 f"发现不支持的 BPMN 元素 {tag} x{raw_counts[tag]}：{note}"
             )
+        elif status == "warning":
+            report.warnings.append(f"发现近似处理的 BPMN 元素 {tag} x{raw_counts[tag]}：{note}")
 
     try:
         model = parse_bpmn(bpmn_path)
@@ -239,6 +248,7 @@ def analyze_bpmn(bpmn_path: pathlib.Path, timeout: int = 120) -> CompatibilityRe
     report.parsed_message_flows = len(model.message_flows)
 
     _check_flow_references(model, report.blocking_issues, report.warnings)
+    report.warnings.extend(model.warnings)
     if report.blocking_issues:
         report.compatible = False
 

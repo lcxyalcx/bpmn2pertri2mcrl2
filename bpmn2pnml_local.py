@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 """Convert a practical BPMN collaboration subset to PNML.
 
-Supported flow nodes: startEvent, endEvent, task, intermediateCatchEvent,
-intermediateThrowEvent, parallelGateway, eventBasedGateway, exclusiveGateway,
-inclusiveGateway, complexGateway.
-
-Sequence flows become places, flow nodes become transitions, and gating message
-flows become places consumed by message/start/catch receivers. Throw events
-produce outgoing messageFlow places. Informational task-to-task message flows
-are omitted to avoid artificial request/response cycles in the Petri net.
+Supported flow nodes include events, all common task types, gateways, subprocess
+containers (flattened), callActivity, and boundaryEvent. Sequence flows become
+places, flow nodes become transitions, and gating message flows become places.
 
 See docs/BPMN_SUPPORT.md for the full support matrix.
 """
@@ -29,6 +24,8 @@ class BpmnNode:
     tag: str
     name: str
     process_id: str | None
+    original_tag: str
+    attached_to: str | None = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -39,12 +36,21 @@ class Flow:
     target: str
 
 
+@dataclasses.dataclass(frozen=True)
+class ContainerInfo:
+    cid: str
+    start_ids: tuple[str, ...]
+    end_ids: tuple[str, ...]
+
+
 @dataclasses.dataclass
 class BpmnModel:
     nodes: dict[str, BpmnNode]
     process_ids: list[str]
     sequence_flows: dict[str, Flow]
     message_flows: dict[str, Flow]
+    containers: dict[str, ContainerInfo]
+    warnings: list[str]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -74,12 +80,25 @@ class PetriNet:
     arcs: list[Arc]
 
 
-FLOW_NODE_TAGS = {
-    "startEvent",
-    "endEvent",
+CONTAINER_TAGS = {
+    "subProcess",
+    "adHocSubProcess",
+    "eventSubProcess",
+    "transaction",
+}
+
+TASK_TAGS = {
     "task",
-    "intermediateCatchEvent",
-    "intermediateThrowEvent",
+    "userTask",
+    "serviceTask",
+    "scriptTask",
+    "manualTask",
+    "businessRuleTask",
+    "sendTask",
+    "receiveTask",
+}
+
+GATEWAY_TAGS = {
     "parallelGateway",
     "eventBasedGateway",
     "exclusiveGateway",
@@ -87,7 +106,25 @@ FLOW_NODE_TAGS = {
     "complexGateway",
 }
 
+EVENT_TAGS = {
+    "startEvent",
+    "endEvent",
+    "intermediateCatchEvent",
+    "intermediateThrowEvent",
+    "boundaryEvent",
+}
+
+FLOW_NODE_XML_TAGS = EVENT_TAGS | GATEWAY_TAGS | TASK_TAGS | {"callActivity"}
+
+FLOW_NODE_TAGS = (
+    EVENT_TAGS
+    | GATEWAY_TAGS
+    | {"task", "callActivity"}
+)
+
 CHOICE_GATEWAY_TAGS = {"eventBasedGateway", "exclusiveGateway", "complexGateway"}
+
+ACTIVITY_TAGS = {"task", "callActivity", "parallelGateway"}
 
 
 def _strip_namespace(tag: str) -> str:
@@ -108,6 +145,12 @@ def _safe_id(value: str) -> str:
     return value or "x"
 
 
+def _normalize_flow_node_tag(tag: str) -> str:
+    if tag in TASK_TAGS or tag == "callActivity":
+        return "task" if tag in TASK_TAGS else "callActivity"
+    return tag
+
+
 def _display_name(node: BpmnNode) -> str:
     if node.name:
         return node.name
@@ -123,9 +166,135 @@ def _display_name(node: BpmnNode) -> str:
         return f"complex gateway {node.nid}"
     if node.tag == "intermediateThrowEvent":
         return f"throw {node.nid}"
+    if node.tag == "boundaryEvent":
+        return f"boundary {node.nid}"
+    if node.original_tag == "callActivity":
+        return f"call {node.nid}"
     if node.tag == "endEvent":
         return "End"
     return node.nid
+
+
+def _collect_container_endpoints(container: ET.Element) -> tuple[list[str], list[str]]:
+    starts: list[str] = []
+    ends: list[str] = []
+    for child in container.iter():
+        if child is container:
+            continue
+        tag = _strip_namespace(child.tag)
+        if tag in CONTAINER_TAGS:
+            continue
+        if tag == "startEvent":
+            nid = child.attrib.get("id")
+            if nid:
+                starts.append(nid)
+        elif tag == "endEvent":
+            nid = child.attrib.get("id")
+            if nid:
+                ends.append(nid)
+    return starts, ends
+
+
+def _parse_container(
+    container: ET.Element,
+    process_id: str,
+    nodes: dict[str, BpmnNode],
+    sequence_flows: dict[str, Flow],
+    containers: dict[str, ContainerInfo],
+    warnings: list[str],
+) -> None:
+    tag = _strip_namespace(container.tag)
+    if tag in CONTAINER_TAGS:
+        cid = container.attrib.get("id", "")
+        if cid:
+            starts, ends = _collect_container_endpoints(container)
+            containers[cid] = ContainerInfo(cid, tuple(starts), tuple(ends))
+            if not starts:
+                warnings.append(f"容器 {cid} ({tag}) 没有内部 startEvent")
+            if not ends:
+                warnings.append(f"容器 {cid} ({tag}) 没有内部 endEvent")
+
+    for child in container:
+        child_tag = _strip_namespace(child.tag)
+        if child_tag in CONTAINER_TAGS:
+            _parse_container(child, process_id, nodes, sequence_flows, containers, warnings)
+            continue
+        if child_tag in FLOW_NODE_XML_TAGS:
+            nid = child.attrib.get("id", "")
+            if not nid:
+                continue
+            normalized = _normalize_flow_node_tag(child_tag)
+            nodes[nid] = BpmnNode(
+                nid=nid,
+                tag=normalized,
+                name=child.attrib.get("name", "").strip(),
+                process_id=process_id,
+                original_tag=child_tag,
+                attached_to=child.attrib.get("attachedToRef") or None,
+            )
+            if child.find(".//{*}multiInstanceLoopCharacteristics") is not None:
+                warnings.append(
+                    f"节点 {nid} ({child_tag}) 含多实例标记，当前按单实例转换"
+                )
+        elif child_tag == "sequenceFlow":
+            fid = child.attrib.get("id", "")
+            source = child.attrib.get("sourceRef", "")
+            target = child.attrib.get("targetRef", "")
+            if fid and source and target:
+                sequence_flows[fid] = Flow(
+                    fid=fid,
+                    name=child.attrib.get("name", "").strip() or fid,
+                    source=source,
+                    target=target,
+                )
+
+
+def _rewrite_container_flows(
+    sequence_flows: dict[str, Flow],
+    containers: dict[str, ContainerInfo],
+    warnings: list[str],
+) -> dict[str, Flow]:
+    rewritten: dict[str, Flow] = {}
+    for flow in sequence_flows.values():
+        source_container = containers.get(flow.source)
+        target_container = containers.get(flow.target)
+
+        if source_container and target_container:
+            warnings.append(
+                f"sequenceFlow {flow.fid} 连接两个容器，当前仅保留容器内部路径"
+            )
+            continue
+
+        if source_container:
+            if not source_container.end_ids:
+                warnings.append(f"sequenceFlow {flow.fid} 源自容器 {flow.source}，但无 endEvent")
+                continue
+            for index, end_id in enumerate(source_container.end_ids):
+                suffix = f"_exit_{index}" if len(source_container.end_ids) > 1 else "_exit"
+                rewritten[f"{flow.fid}{suffix}"] = Flow(
+                    f"{flow.fid}{suffix}",
+                    flow.name,
+                    end_id,
+                    flow.target,
+                )
+            continue
+
+        if target_container:
+            if not target_container.start_ids:
+                warnings.append(f"sequenceFlow {flow.fid} 指向容器 {flow.target}，但无 startEvent")
+                continue
+            for index, start_id in enumerate(target_container.start_ids):
+                suffix = f"_entry_{index}" if len(target_container.start_ids) > 1 else "_entry"
+                rewritten[f"{flow.fid}{suffix}"] = Flow(
+                    f"{flow.fid}{suffix}",
+                    flow.name,
+                    flow.source,
+                    start_id,
+                )
+            continue
+
+        rewritten[flow.fid] = flow
+    return rewritten
 
 
 def parse_bpmn(path: pathlib.Path) -> BpmnModel:
@@ -134,6 +303,8 @@ def parse_bpmn(path: pathlib.Path) -> BpmnModel:
     process_ids: list[str] = []
     sequence_flows: dict[str, Flow] = {}
     message_flows: dict[str, Flow] = {}
+    containers: dict[str, ContainerInfo] = {}
+    warnings: list[str] = []
 
     for process in root.iter():
         if _strip_namespace(process.tag) != "process":
@@ -141,28 +312,9 @@ def parse_bpmn(path: pathlib.Path) -> BpmnModel:
         process_id = process.attrib.get("id", "")
         if process_id:
             process_ids.append(process_id)
-        for child in process:
-            tag = _strip_namespace(child.tag)
-            if tag in FLOW_NODE_TAGS:
-                nid = child.attrib.get("id", "")
-                if nid:
-                    nodes[nid] = BpmnNode(
-                        nid=nid,
-                        tag=tag,
-                        name=child.attrib.get("name", "").strip(),
-                        process_id=process_id,
-                    )
-            elif tag == "sequenceFlow":
-                fid = child.attrib.get("id", "")
-                source = child.attrib.get("sourceRef", "")
-                target = child.attrib.get("targetRef", "")
-                if fid and source and target:
-                    sequence_flows[fid] = Flow(
-                        fid=fid,
-                        name=child.attrib.get("name", "").strip() or fid,
-                        source=source,
-                        target=target,
-                    )
+        _parse_container(process, process_id, nodes, sequence_flows, containers, warnings)
+
+    sequence_flows = _rewrite_container_flows(sequence_flows, containers, warnings)
 
     for elem in root.iter():
         if _strip_namespace(elem.tag) != "messageFlow":
@@ -178,18 +330,34 @@ def parse_bpmn(path: pathlib.Path) -> BpmnModel:
                 target=target,
             )
 
-    return BpmnModel(nodes, process_ids, sequence_flows, message_flows)
+    return BpmnModel(nodes, process_ids, sequence_flows, message_flows, containers, warnings)
 
 
 def _message_flow_gates_target(flow: Flow, model: BpmnModel) -> bool:
     target = model.nodes.get(flow.target)
     if target is None:
         return False
-    if target.tag in {"startEvent", "intermediateCatchEvent"}:
+    if target.tag in {"startEvent", "intermediateCatchEvent", "boundaryEvent"}:
+        return True
+    if target.original_tag == "receiveTask":
         return True
     if target.tag == "task" and target.name.lower().startswith("receive"):
         return True
     return False
+
+
+def _is_message_producer(node: BpmnNode) -> bool:
+    return node.tag == "intermediateThrowEvent" or node.original_tag == "sendTask"
+
+
+def _outgoing_message_places(
+    node: BpmnNode,
+    gating_messages: dict[str, Flow],
+    all_message_flows: dict[str, Flow],
+) -> list[Flow]:
+    if _is_message_producer(node):
+        return _outgoing_flows(all_message_flows, node.nid)
+    return _outgoing_flows(gating_messages, node.nid)
 
 
 def _incoming_flows(flows: dict[str, Flow], node_id: str) -> list[Flow]:
@@ -290,6 +458,27 @@ def _add_inclusive_gateway_transitions(
     )
 
 
+def _activity_transition(
+    net: PetriNet,
+    node: BpmnNode,
+    incoming_seq: list[Flow],
+    outgoing_seq: list[Flow],
+    incoming_msg: list[Flow],
+    gating_messages: dict[str, Flow],
+    all_message_flows: dict[str, Flow],
+) -> None:
+    outgoing_msg = _outgoing_message_places(node, gating_messages, all_message_flows)
+    pre = [
+        *[flow.fid for flow in incoming_seq],
+        *[flow.fid for flow in incoming_msg],
+    ]
+    post = [
+        *[flow.fid for flow in outgoing_seq],
+        *[flow.fid for flow in outgoing_msg],
+    ]
+    _add_transition(net, node.nid, _display_name(node), pre, post)
+
+
 def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
     net = PetriNet(places={}, transitions={}, arcs=[])
     gating_messages = {
@@ -304,7 +493,7 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
         net.places[flow.fid] = Place(flow.fid, flow.name, 0)
     for flow in model.message_flows.values():
         source = model.nodes.get(flow.source)
-        if source is not None and source.tag == "intermediateThrowEvent":
+        if source is not None and _is_message_producer(source):
             net.places[flow.fid] = Place(flow.fid, flow.name, 0)
     for process_id in model.process_ids:
         net.places[f"start_p_{_safe_id(process_id)}"] = Place(
@@ -327,18 +516,28 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
         incoming_seq = _incoming_flows(model.sequence_flows, node.nid)
         outgoing_seq = _outgoing_flows(model.sequence_flows, node.nid)
         incoming_msg = _incoming_flows(gating_messages, node.nid)
-        outgoing_msg = _outgoing_flows(gating_messages, node.nid)
-        incoming = [flow.fid for flow in incoming_seq]
-        outgoing = [flow.fid for flow in outgoing_seq]
+        outgoing_msg = _outgoing_message_places(node, gating_messages, model.message_flows)
 
         if node.tag == "startEvent":
             pre = [flow.fid for flow in incoming_msg]
             if not pre:
                 pre = [f"start_p_{_safe_id(node.process_id or 'process')}"]
-            _add_transition(net, node.nid, _display_name(node), pre, outgoing)
+            _add_transition(
+                net,
+                node.nid,
+                _display_name(node),
+                pre,
+                [flow.fid for flow in outgoing_seq],
+            )
         elif node.tag == "endEvent":
             end_id = f"end_p_{_safe_id(node.process_id or 'process')}"
-            _add_transition(net, node.nid, _display_name(node), incoming, [end_id])
+            _add_transition(
+                net,
+                node.nid,
+                _display_name(node),
+                [flow.fid for flow in incoming_seq],
+                [end_id],
+            )
         elif node.tag in CHOICE_GATEWAY_TAGS:
             _add_choice_gateway_transitions(net, node, incoming_seq, outgoing_seq)
         elif node.tag == "inclusiveGateway":
@@ -352,12 +551,12 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
                     tid,
                     _display_name(node),
                     [flow.fid, *message_inputs],
-                    outgoing,
+                    [flow.fid for flow in outgoing_seq],
                 )
         elif node.tag == "intermediateThrowEvent":
-            message_outputs = [flow.fid for flow in _outgoing_flows(model.message_flows, node.nid)]
+            message_outputs = [flow.fid for flow in outgoing_msg]
             message_inputs = [flow.fid for flow in incoming_msg]
-            post = [*outgoing, *message_outputs]
+            post = [*[flow.fid for flow in outgoing_seq], *message_outputs]
             if incoming_seq:
                 for flow in incoming_seq:
                     tid = f"{node.nid}_from_{flow.fid}"
@@ -369,17 +568,46 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
                         post,
                     )
             else:
+                _add_transition(net, node.nid, _display_name(node), message_inputs, post)
+        elif node.tag == "boundaryEvent":
+            attached_id = node.attached_to
+            attached_incoming = (
+                _incoming_flows(model.sequence_flows, attached_id) if attached_id else []
+            )
+            pre_places = [flow.fid for flow in attached_incoming]
+            message_inputs = [flow.fid for flow in incoming_msg]
+            message_outputs = [flow.fid for flow in outgoing_msg]
+            post = [*[flow.fid for flow in outgoing_seq], *message_outputs]
+            if pre_places:
                 _add_transition(
                     net,
                     node.nid,
                     _display_name(node),
-                    message_inputs,
+                    [*pre_places, *message_inputs],
                     post,
                 )
-        elif node.tag in {"task", "parallelGateway"}:
-            pre = [*incoming, *[flow.fid for flow in incoming_msg]]
-            post = [*outgoing, *[flow.fid for flow in outgoing_msg]]
-            _add_transition(net, node.nid, _display_name(node), pre, post)
+            elif incoming_seq:
+                for flow in incoming_seq:
+                    tid = f"{node.nid}_from_{flow.fid}"
+                    _add_transition(
+                        net,
+                        tid,
+                        _display_name(node),
+                        [flow.fid, *message_inputs],
+                        post,
+                    )
+            else:
+                _add_transition(net, node.nid, _display_name(node), message_inputs, post)
+        elif node.tag in ACTIVITY_TAGS:
+            _activity_transition(
+                net,
+                node,
+                incoming_seq,
+                outgoing_seq,
+                incoming_msg,
+                gating_messages,
+                model.message_flows,
+            )
 
     process_end_places = [f"end_p_{_safe_id(pid)}" for pid in model.process_ids]
     if len(process_end_places) > 1:

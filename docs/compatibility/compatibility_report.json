@@ -1,5 +1,7 @@
 {
   "supported_flow_nodes": [
+    "boundaryEvent",
+    "callActivity",
     "complexGateway",
     "endEvent",
     "eventBasedGateway",
@@ -16,158 +18,17 @@
     "sequenceFlow"
   ],
   "unsupported_flow_nodes": {
-    "subProcess": "子流程未展开",
-    "callActivity": "调用活动未建模",
-    "boundaryEvent": "边界事件未建模",
-    "serviceTask": "仅识别 generic task，不识别 serviceTask",
-    "userTask": "仅识别 generic task，不识别 userTask",
-    "scriptTask": "仅识别 generic task，不识别 scriptTask",
-    "manualTask": "仅识别 generic task，不识别 manualTask",
-    "businessRuleTask": "仅识别 generic task，不识别 businessRuleTask",
-    "sendTask": "仅识别 generic task，不识别 sendTask",
-    "receiveTask": "仅识别 generic task，不识别 receiveTask",
-    "transaction": "事务未建模",
-    "adHocSubProcess": "临时子流程未建模",
-    "eventSubProcess": "事件子流程未建模"
+    "globalTask": "全局任务未建模",
+    "globalChoreographyTask": "编排任务未建模",
+    "choreographyTask": "编排任务未建模",
+    "conversation": "会话未建模"
   },
   "summary": {
-    "total": 4,
-    "compatible": 4,
+    "total": 2,
+    "compatible": 2,
     "incompatible": 0
   },
   "reports": [
-    {
-      "bpmn_file": "docs/runs/pizza_official_redownload_20260518/pizza_official_downloaded.bpmn",
-      "compatible": true,
-      "blocking_issues": [],
-      "warnings": [],
-      "element_inventory": [
-        {
-          "tag": "endEvent",
-          "count": 2,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "eventBasedGateway",
-          "count": 1,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "intermediateCatchEvent",
-          "count": 3,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "messageFlow",
-          "count": 6,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "parallelGateway",
-          "count": 1,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "sequenceFlow",
-          "count": 18,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "startEvent",
-          "count": 2,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "task",
-          "count": 9,
-          "status": "supported",
-          "note": ""
-        }
-      ],
-      "parsed_nodes": 18,
-      "parsed_sequence_flows": 18,
-      "parsed_message_flows": 6,
-      "pnml_places": 27,
-      "pnml_transitions": 23,
-      "pnml_arcs": 56,
-      "mcrl2_generated": true,
-      "mcrl2_syntax_ok": true,
-      "mcrl2_syntax_error": "",
-      "bounded_mcrl2_syntax_ok": true
-    },
-    {
-      "bpmn_file": "docs/runs/pizza_official_redownload_20260518/pizza_official_with_comments_downloaded.bpmn",
-      "compatible": true,
-      "blocking_issues": [],
-      "warnings": [],
-      "element_inventory": [
-        {
-          "tag": "endEvent",
-          "count": 2,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "eventBasedGateway",
-          "count": 1,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "intermediateCatchEvent",
-          "count": 3,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "messageFlow",
-          "count": 6,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "parallelGateway",
-          "count": 1,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "sequenceFlow",
-          "count": 18,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "startEvent",
-          "count": 2,
-          "status": "supported",
-          "note": ""
-        },
-        {
-          "tag": "task",
-          "count": 9,
-          "status": "supported",
-          "note": ""
-        }
-      ],
-      "parsed_nodes": 18,
-      "parsed_sequence_flows": 18,
-      "parsed_message_flows": 6,
-      "pnml_places": 27,
-      "pnml_transitions": 23,
-      "pnml_arcs": 56,
-      "mcrl2_generated": true,
-      "mcrl2_syntax_ok": true,
-      "mcrl2_syntax_error": "",
-      "bounded_mcrl2_syntax_ok": true
-    },
     {
       "bpmn_file": "examples/pizza.bpmn",
       "compatible": true,

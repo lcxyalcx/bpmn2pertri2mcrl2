@@ -220,6 +220,89 @@ class TestConverter(unittest.TestCase):
         self.assertTrue(report.compatible)
         self.assertTrue(report.mcrl2_generated)
 
+    def test_user_task_is_converted_as_task(self):
+        from bpmn2pnml_local import convert_bpmn_to_pn, parse_bpmn
+
+        bpmn = """<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="Start_1" />
+    <bpmn:userTask id="Task_1" name="Review" />
+    <bpmn:endEvent id="End_1" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bpmn_path = pathlib.Path(tmp_dir) / "user_task.bpmn"
+            bpmn_path.write_text(bpmn, encoding="utf-8")
+            model = parse_bpmn(bpmn_path)
+            net = convert_bpmn_to_pn(model)
+
+        self.assertEqual(model.nodes["Task_1"].tag, "task")
+        self.assertEqual(model.nodes["Task_1"].original_tag, "userTask")
+        self.assertIn("Task_1", net.transitions)
+
+    def test_subprocess_is_flattened(self):
+        from bpmn2pnml_local import convert_bpmn_to_pn, parse_bpmn
+
+        bpmn = """<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="Start_1" />
+    <bpmn:subProcess id="Sub_1">
+      <bpmn:startEvent id="SubStart" />
+      <bpmn:task id="Inner" name="Inside" />
+      <bpmn:endEvent id="SubEnd" />
+      <bpmn:sequenceFlow id="Flow_in_1" sourceRef="SubStart" targetRef="Inner" />
+      <bpmn:sequenceFlow id="Flow_in_2" sourceRef="Inner" targetRef="SubEnd" />
+    </bpmn:subProcess>
+    <bpmn:endEvent id="End_1" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Sub_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Sub_1" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bpmn_path = pathlib.Path(tmp_dir) / "subprocess.bpmn"
+            bpmn_path.write_text(bpmn, encoding="utf-8")
+            model = parse_bpmn(bpmn_path)
+            net = convert_bpmn_to_pn(model)
+
+        self.assertIn("Inner", model.nodes)
+        self.assertNotIn("Sub_1", model.nodes)
+        self.assertTrue(any(t.name == "Inside" for t in net.transitions.values()))
+        self.assertIn("Flow_1_entry", model.sequence_flows)
+
+    def test_boundary_event_uses_attached_activity_input(self):
+        from bpmn2pnml_local import convert_bpmn_to_pn, parse_bpmn
+
+        bpmn = """<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="Start_1" />
+    <bpmn:task id="Task_1" name="Work" />
+    <bpmn:boundaryEvent id="Boundary_1" name="Timeout" attachedToRef="Task_1" />
+    <bpmn:task id="Task_2" name="Escalate" />
+    <bpmn:endEvent id="End_1" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="End_1" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Boundary_1" targetRef="Task_2" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_2" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bpmn_path = pathlib.Path(tmp_dir) / "boundary.bpmn"
+            bpmn_path.write_text(bpmn, encoding="utf-8")
+            net = convert_bpmn_to_pn(parse_bpmn(bpmn_path))
+
+        boundary = net.transitions["Boundary_1"]
+        pre = {arc.source for arc in net.arcs if arc.target == "Boundary_1"}
+        self.assertIn("Flow_1", pre)
+        self.assertEqual(boundary.name, "Timeout")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -281,21 +281,22 @@ docs/verification/pizza_official/pizza_official_bounded.mcrl2 -> LPS
 当前本地 BPMN-aware PNML 转换器支持范围见 [`docs/BPMN_SUPPORT.md`](BPMN_SUPPORT.md)，主要包括：
 
 ```text
-startEvent / endEvent
-intermediateCatchEvent / intermediateThrowEvent
-task
+startEvent / endEvent / intermediateCatchEvent / intermediateThrowEvent / boundaryEvent
+task + userTask/serviceTask/scriptTask/manualTask/businessRuleTask/sendTask/receiveTask
+callActivity
 parallelGateway / eventBasedGateway / exclusiveGateway / inclusiveGateway / complexGateway
+subProcess / adHocSubProcess / eventSubProcess / transaction（展开）
 sequenceFlow / messageFlow
 ```
 
 当前尚未完整覆盖：
 
 ```text
-subProcess / callActivity / boundaryEvent
-userTask / serviceTask 等专用任务类型
+globalTask / choreography / conversation
 网关条件表达式 / default flow
 data object / data association
-多实例任务 / 补偿 / 资源约束 / 真实时间语义
+多实例语义（当前按单实例转换并警告）
+补偿 / 资源约束 / 真实时间语义
 ```
 
 建议下一步工作：
