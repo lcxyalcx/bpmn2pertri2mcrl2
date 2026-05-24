@@ -287,6 +287,7 @@ $$
 ## 📚 更多文档
 
 - [`docs/BPMN_SUPPORT.md`](docs/BPMN_SUPPORT.md) — **BPMN 可转换 / 不可转换元素清单**
+- [`docs/ppt/PPT_GUIDE.md`](docs/ppt/PPT_GUIDE.md) — **PPT 制作素材与幻灯片建议**
 - [`docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md`](docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md) — 兼容性验证报告
 - [`docs/PROJECT_SUMMARY.md`](docs/PROJECT_SUMMARY.md) — 项目工作说明
 - [`PROCESS.md`](PROCESS.md) — 转换流程原理

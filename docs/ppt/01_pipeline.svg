@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="#334155"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f8fafc"/>
+  <text x="64" y="72" font-family="PingFang SC, Helvetica, Arial" font-size="36" font-weight="700" fill="#0f172a">BPMN ’ Petri Net ’ mCRL2 lbA4¿</text>
+  <text x="64" y="112" font-family="PingFang SC, Helvetica, Arial" font-size="18" fill="#64748b">˜¹ Pizza O\Aï0ïê¨ŒÁ</text>
+
+  <rect x="64" y="180" width="240" height="120" rx="16" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="184" y="228" text-anchor="middle" font-family="PingFang SC, Helvetica" font-size="22" font-weight="700" fill="#1d4ed8">BPMN</text>
+  <text x="184" y="258" text-anchor="middle" font-family="Helvetica" font-size="14" fill="#334155">.bpmn O\!‹</text>
+  <text x="184" y="282" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#64748b">2 process · 18 nodes</text>
+
+  <rect x="364" y="180" width="240" height="120" rx="16" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="484" y="228" text-anchor="middle" font-family="PingFang SC, Helvetica" font-size="22" font-weight="700" fill="#166534">PNML</text>
+  <text x="484" y="258" text-anchor="middle" font-family="Helvetica" font-size="14" fill="#334155">Petri Q-ôh:</text>
+  <text x="484" y="282" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#64748b">bpmn2pnml_local.py</text>
+
+  <rect x="664" y="180" width="240" height="120" rx="16" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="784" y="228" text-anchor="middle" font-family="PingFang SC, Helvetica" font-size="22" font-weight="700" fill="#92400e">mCRL2</text>
+  <text x="784" y="258" text-anchor="middle" font-family="Helvetica" font-size="14" fill="#334155">Ûãp!‹</text>
+  <text x="784" y="282" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#64748b">pnml2mcrl2.py</text>
+
+  <rect x="964" y="180" width="240" height="120" rx="16" fill="#fce7f3" stroke="#db2777" stroke-width="2"/>
+  <text x="1084" y="228" text-anchor="middle" font-family="PingFang SC, Helvetica" font-size="22" font-weight="700" fill="#be185d">LTS</text>
+  <text x="1084" y="258" text-anchor="middle" font-family="Helvetica" font-size="14" fill="#334155">¶zô · '(ŒÁ</text>
+  <text x="1084" y="282" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#64748b">mcrl22lps · lps2lts</text>
+
+  <line x1="304" y1="240" x2="364" y2="240" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="604" y1="240" x2="664" y2="240" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="904" y1="240" x2="964" y2="240" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="64" y="360" width="1140" height="280" rx="16" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="88" y="400" font-family="PingFang SC, Helvetica" font-size="20" font-weight="700" fill="#0f172a">˜¹ Pizza 7‹Ä!</text>
+  <text x="88" y="450" font-family="PingFang SC, Helvetica" font-size="16" fill="#334155">BPMN2 * participant · 9 * task · 6 a message flow · vL/‹öQs</text>
+  <text x="88" y="486" font-family="PingFang SC, Helvetica" font-size="16" fill="#334155">PNML27 places · 23 transitions · 56 arcs</text>
+  <text x="88" y="522" font-family="PingFang SC, Helvetica" font-size="16" fill="#334155">Bounded LTS200 states · 199 transitions · 18 action labels · deterministic</text>
+  <text x="88" y="558" font-family="PingFang SC, Helvetica" font-size="16" fill="#334155">'(ŒÁ6/6 yÀå&„/Ø¾âîª¯TÓ_Gï¾	</text>
+  <text x="88" y="604" font-family="Helvetica" font-size="13" fill="#64748b">GitHub: github.com/lcxyalcx/bpmn2pertri2mcrl2</text>
+</svg>
