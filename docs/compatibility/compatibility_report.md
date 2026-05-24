@@ -27,6 +27,48 @@
 
 ## 检查结果
 
+### `docs/runs/pizza_official_redownload_20260518/pizza_official_downloaded.bpmn` — 兼容
+
+- 解析节点：18
+- sequence flow：18
+- message flow：6
+- PNML：27 places / 23 transitions / 56 arcs
+- mCRL2 已生成：true
+- mCRL2 语法验证：True
+- bounded mCRL2 语法验证：True
+
+| 元素 | 数量 | 状态 | 说明 |
+| --- | ---: | --- | --- |
+| `endEvent` | 2 | supported |  |
+| `eventBasedGateway` | 1 | supported |  |
+| `intermediateCatchEvent` | 3 | supported |  |
+| `messageFlow` | 6 | supported |  |
+| `parallelGateway` | 1 | supported |  |
+| `sequenceFlow` | 18 | supported |  |
+| `startEvent` | 2 | supported |  |
+| `task` | 9 | supported |  |
+
+### `docs/runs/pizza_official_redownload_20260518/pizza_official_with_comments_downloaded.bpmn` — 兼容
+
+- 解析节点：18
+- sequence flow：18
+- message flow：6
+- PNML：27 places / 23 transitions / 56 arcs
+- mCRL2 已生成：true
+- mCRL2 语法验证：True
+- bounded mCRL2 语法验证：True
+
+| 元素 | 数量 | 状态 | 说明 |
+| --- | ---: | --- | --- |
+| `endEvent` | 2 | supported |  |
+| `eventBasedGateway` | 1 | supported |  |
+| `intermediateCatchEvent` | 3 | supported |  |
+| `messageFlow` | 6 | supported |  |
+| `parallelGateway` | 1 | supported |  |
+| `sequenceFlow` | 18 | supported |  |
+| `startEvent` | 2 | supported |  |
+| `task` | 9 | supported |  |
+
 ### `examples/pizza.bpmn` — 兼容
 
 - 解析节点：4

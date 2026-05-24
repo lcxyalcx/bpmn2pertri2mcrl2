@@ -2,7 +2,7 @@
 
 | 项目 | 内容 |
 | --- | --- |
-| 报告日期 | 2026-05-24（更新：网关与 throw 事件支持） |
+| 报告日期 | 2026-05-24（更新：专用任务、子流程展开、boundaryEvent） |
 | 验证对象 | 本地转换链路：`bpmn2pnml_local.py` + `pnml2mcrl2.py` |
 | 对照链路 | 网页转换链路：`bpmn2mcrl2_web.py`（bpmn2petrinet.com） |
 | 验证工具 | `scripts/check_bpmn_compatibility.py`、`scripts/check_pizza_official.py`、`scripts/compare_pizza_local_vs_web.py` |
@@ -17,9 +17,9 @@
 **主要结论：**
 
 1. **结构兼容性**：仓库内 4 个 BPMN 测试样例全部通过兼容性检查（4/4），均能成功完成 BPMN → PNML → mCRL2 转换，并通过 `mcrl22lps` 语法验证。
-2. **元素覆盖**：本地转换器支持 **12 类** flow node / flow（见 [`docs/BPMN_SUPPORT.md`](../BPMN_SUPPORT.md)）；对 14 类常见但不支持的 BPMN 元素可自动检测并报告。
+2. **元素覆盖**：本地转换器支持 **20+ 类** BPMN 元素（见 [`docs/BPMN_SUPPORT.md`](../BPMN_SUPPORT.md)），包括全部常见网关、专用任务类型、子流程容器与 boundaryEvent；仅编排/全局任务等少数元素仍不支持。
 3. **语义兼容性**：在官方 Pizza 协作流程上，本地方法在支付、询问/安抚循环、双 participant 联合结束等关键行为上均可达；对照网页转换链路，上述行为在网页 PNML 上不可达。
-4. **适用范围**：该方法适用于 **含协作、消息流与各类网关的 BPMN 子集**，而非完整 BPMN 2.0；不解析网关条件表达式、不支持子流程与专用任务类型。
+4. **适用范围**：该方法适用于 **含协作、消息流、网关、子流程与边界事件的 BPMN 子集**；不解析网关条件表达式，多实例按单实例近似。
 
 **总体判定：** 在所验证的 BPMN 子集与测试样例范围内，本地转换方法 **兼容且语义可靠**；对未覆盖的 BPMN 元素，应在使用前运行兼容性检查工具进行预检。
 
@@ -50,6 +50,10 @@ Petri 网映射策略（本地）：
 | event-based / exclusive / complex gateway | 每个 (入边, 出边) 一条 `choose_*` 变迁 |
 | inclusive gateway | split：出边非空子集 `activate_*`；join：入边非空子集 `join_*` |
 | intermediate throw event | 产生 sequence 出边与 outgoing messageFlow place |
+| boundary event | 在附着活动输入 place 上并行触发 |
+| specialized task (`userTask` 等) | 映射为 `task` transition |
+| subprocess container | 扁平化展开内部节点并重连外部 sequenceFlow |
+| callActivity | 按单变迁活动处理 |
 | gating message flow | message place，作为接收节点前置条件 |
 | 信息型 task-to-task message flow | 不作为接收任务前置条件（避免互等依赖） |
 
@@ -110,9 +114,9 @@ flowchart TB
 
 ### 3.2 第二层：单元测试回归
 
-工具：`tests/test_converter.py`（10 项测试）
+工具：`tests/test_converter.py`（13 项测试）
 
-覆盖：PNML 转换、本地 BPMN→PNML、bounded 守卫、XOR/OR 网关、throw 事件、兼容性检查。
+覆盖：PNML 转换、本地 BPMN→PNML、bounded 守卫、XOR/OR 网关、throw/boundary 事件、专用任务、子流程展开、兼容性检查。
 
 ### 3.3 第三层：语义验证与对照实验
 
@@ -129,35 +133,42 @@ flowchart TB
 
 | 类别 | 元素 | 说明 |
 | --- | --- | --- |
-| Flow Node | `startEvent` | 流程或消息触发起点 |
-| Flow Node | `endEvent` | 流程结束，支持双 participant join |
-| Flow Node | `task` | 仅 generic `task` |
-| Flow Node | `intermediateCatchEvent` | 含 timer 等 catch 事件 |
-| Flow Node | `intermediateThrowEvent` | 抛出 outgoing messageFlow |
-| Flow Node | `parallelGateway` | AND-split / AND-join |
-| Flow Node | `eventBasedGateway` | 显式 `choose_*` 变迁 |
-| Flow Node | `exclusiveGateway` | XOR split/join（不解析条件） |
-| Flow Node | `inclusiveGateway` | OR split/join（子集展开） |
-| Flow Node | `complexGateway` | 保守按 XOR 处理 |
-| Flow | `sequenceFlow` | 映射为 place |
-| Flow | `messageFlow` | gating 型 message place |
+| Flow Node | `startEvent` / `endEvent` | 流程或消息启动/结束 |
+| Flow Node | `intermediateCatchEvent` / `intermediateThrowEvent` | catch / throw 事件 |
+| Flow Node | `boundaryEvent` | 附着活动输入 place 上触发 |
+| Flow Node | `task` | generic 任务 |
+| Flow Node | `userTask` / `serviceTask` / `scriptTask` / `manualTask` / `businessRuleTask` / `sendTask` / `receiveTask` | 映射为 `task` |
+| Flow Node | `callActivity` | 单变迁活动 |
+| Flow Node | `parallelGateway` / `eventBasedGateway` / `exclusiveGateway` / `inclusiveGateway` / `complexGateway` | 各类网关 |
+| Container | `subProcess` / `adHocSubProcess` / `eventSubProcess` / `transaction` | 内部节点展开 |
+| Flow | `sequenceFlow` / `messageFlow` | 控制流与 gating 消息流 |
 
-### 4.2 不支持且会被检测的元素
+### 4.2 近似处理（⚠️）
+
+| 场景 | 说明 |
+| --- | --- |
+| 网关条件表达式 | 不解析，按结构展开 |
+| 多实例 | 按单实例转换，扫描时给出 warning |
+| 子流程 | 扁平化，不保留层次作用域 |
+| boundary event | 与附着活动并行可触发，不区分中断/非中断 |
+| timer | 普通 transition，无真实时钟 |
+
+### 4.3 不支持且会被检测的元素
 
 | 元素 | 不兼容原因 |
 | --- | --- |
-| `subProcess` / `callActivity` | 子流程未展开 |
-| `boundaryEvent` | 边界事件未建模 |
-| `serviceTask` / `userTask` / `scriptTask` 等 | 仅识别 generic `task` |
-| `transaction` / `adHocSubProcess` / `eventSubProcess` | 高级结构未建模 |
-| 网关条件表达式 | 未解析 BPMN 条件语言 |
+| `globalTask` / `choreographyTask` / `conversation` | 编排/全局任务未建模 |
+| 补偿、资源角色、数据对象语义 | 超出 Petri 网 token 模型 |
 
-### 4.3 网关与 throw 事件验证
+### 4.4 专项单元测试
 
-- **XOR split**：单元测试 `test_exclusive_gateway_bpmn_to_pnml` 验证生成 `choose Flow_2` / `choose Flow_3`
-- **OR split**：单元测试 `test_inclusive_gateway_split_generates_subset_transitions` 验证 3 条出边子集变迁
-- **Throw event**：单元测试 `test_intermediate_throw_event_produces_message_place` 验证 message place 与 post 集
-- **兼容性扫描**：含 `exclusiveGateway` 的 BPMN 现判定为 **兼容**（`test_compatibility_checker_accepts_exclusive_gateway`）
+- **XOR split**：`test_exclusive_gateway_bpmn_to_pnml`
+- **OR split**：`test_inclusive_gateway_split_generates_subset_transitions`
+- **Throw event**：`test_intermediate_throw_event_produces_message_place`
+- **专用任务**：`test_user_task_is_converted_as_task`
+- **子流程展开**：`test_subprocess_is_flattened`
+- **边界事件**：`test_boundary_event_uses_attached_activity_input`
+- **兼容性扫描**：`test_compatibility_checker_accepts_exclusive_gateway`
 
 ---
 
@@ -281,9 +292,9 @@ bounded 参数：`max_place_tokens=1`，`max_lts_states=200`
 
 | 问题类型 | 典型表现 | 检测方式 | 建议处置 |
 | --- | --- | --- | --- |
-| 元素不支持 | 含 XOR 网关、子流程 | 兼容性扫描报 blocking | 改写 BPMN 或扩展转换器 |
+| 元素不支持 | 含 globalTask、编排元素 | 兼容性扫描报 blocking | 改写 BPMN 或等待后续扩展 |
 | 流引用断裂 | sourceRef 指向未识别节点 | 兼容性扫描报 blocking | 检查 BPMN 导出是否完整 |
-| 专用任务类型 | `userTask` 被忽略 | 元素清单中 task 计数为 0 | 替换为 generic `task` |
+| 多实例 | `multiInstanceLoopCharacteristics` | 扫描报 warning | 知悉当前按单实例转换 |
 | 语法错误 | mcrl22lps 失败 | 第二层验证 | 检查 PNML 结构或转换器 bug |
 | 语义偏差 | 转换成功但行为不可达 | 第三层 modal / action 检查 | 审查 message flow / gateway 映射策略 |
 
@@ -329,25 +340,25 @@ python -m unittest discover -s tests -v
 
 | 维度 | 结论 |
 | --- | --- |
-| 元素兼容性 | 12 类元素支持；子流程、专用任务、边界事件等 **不支持** 且可自动检测 |
+| 元素兼容性 | 20+ 类元素支持；编排/全局任务等 **仍不支持** |
 | 转换链路兼容性 | BPMN → PNML → mCRL2 **端到端可用**，4/4 样例通过 |
 | 语法兼容性 | 生成 mCRL2 **可被 mCRL2 工具链接受** |
 | 语义兼容性 | 官方 Pizza 上 6/6 性质符合预期；关键协作行为 **本地方法可达、网页方法不可达** |
-| 负向验证 | 含 `subProcess` / `userTask` 等 **仍会被拒绝**；XOR/OR 网关 **已支持** |
+| 单元测试 | 13/13 通过（含网关、子流程、boundary、专用任务） |
 
 ### 10.2 使用建议
 
 1. **新 BPMN 接入前**，必须先运行 `check_bpmn_compatibility.py` 预检。
-2. **含 message flow、各类网关的协作流程**，优先使用本地链路，不宜单独依赖 bpmn2petrinet.com。
-3. **含子流程、专用任务类型的模型**，当前方法不兼容，需扩展转换器或手工改写 BPMN。
-4. **验证阶段**建议使用 bounded 模型（`max_place_tokens=1`）配合 action witness，完整状态空间可能过大。
+2. **含 message flow、各类网关、子流程的协作流程**，优先使用本地链路。
+3. **含编排元素或多实例语义** 的模型，需知悉当前近似策略或手工改写。
+4. **验证阶段**建议使用 bounded 模型（`max_place_tokens=1`）配合 action witness。
 
 ### 10.3 后续改进方向
 
-1. 识别 `userTask` 等专用任务类型并映射为 generic transition。
-2. 支持 `subProcess` 展开。
-3. 建立更多官方 BPMN 基准样例的兼容性测试集。
-4. 将 modal formula 检查从 action witness 扩展为完整 PBES 验证。
+1. 建立更多官方 BPMN 基准样例的兼容性测试集。
+2. 将 modal formula 检查从 action witness 扩展为完整 PBES 验证。
+3. 支持嵌套子流程层次保留（可选）与多实例语义。
+4. 增加 Petri net 可视化，展示 BPMN 节点到 PNML 的映射。
 
 ---
 
@@ -370,7 +381,7 @@ python -m unittest discover -s tests -v
 | 项目 | 信息 |
 | --- | --- |
 | 验证日期 | 2026-05-24 |
-| Python 单元测试 | 10 passed |
+| Python 单元测试 | 13 passed |
 | 兼容性扫描样例数 | 4 |
 | mCRL2 工具 | `mcrl22lps`（已检测到并用于语法验证） |
 

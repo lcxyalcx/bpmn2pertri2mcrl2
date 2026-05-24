@@ -301,9 +301,9 @@ data object / data association
 
 建议下一步工作：
 
-1. 识别 `userTask` 等专用任务类型并映射为 generic transition。
-2. 支持 `subProcess` 展开。
-3. 将 modal formula 检查从 action witness 扩展为更严格的 PBES 性质验证。
+1. 建立更多官方 BPMN 基准样例的兼容性测试集。
+2. 将 modal formula 检查从 action witness 扩展为更严格的 PBES 性质验证。
+3. 支持多实例语义与嵌套子流程层次保留（可选）。
 4. 增加 Petri net 可视化，展示 BPMN 节点到 PNML place/transition 的映射。
 5. 把当前脚本整理成统一 CLI，例如 `python convert.py bpmn --verify --visualize`。
 
