@@ -16,8 +16,9 @@
 | 6 | BPMN 元素支持范围 | 支持矩阵 | [`02_bpmn_support.svg`](02_bpmn_support.svg) |
 | 7 | 性质验证结果 | 6 项检查摘要 | [`03_verification_results.svg`](03_verification_results.svg) 或 [`../verification/pizza_official/pizza_official_verification_summary.svg`](../verification/pizza_official/pizza_official_verification_summary.svg) |
 | 8 | LTS 状态空间可视化 | 部分状态图（200 状态） | [`../verification/pizza_official/pizza_official_bounded_lts.svg`](../verification/pizza_official/pizza_official_bounded_lts.svg) |
-| 9 | 本地 vs 网页对照 | 语义差异 | [`04_local_vs_web.svg`](04_local_vs_web.svg) 或 [`../runs/.../05_local_vs_web_summary.svg`](../runs/pizza_official_redownload_20260518/05_local_vs_web_summary.svg) |
-| 10 | 总结与展望 | 流水线 + 支持范围 | [`01_pipeline.svg`](01_pipeline.svg) + 口头总结 |
+| 9 | **方法对比：本方法 vs 直接转换** | 三路径 + 可达性柱状图 | [`05_three_way_comparison.svg`](05_three_way_comparison.svg) + [`06_reachability_comparison.svg`](06_reachability_comparison.svg) |
+| 10 | 本地 vs 网页对照 | 语义差异 | [`04_local_vs_web.svg`](04_local_vs_web.svg) |
+| 11 | 总结与展望 | 流水线 + 支持范围 | [`01_pipeline.svg`](01_pipeline.svg) |
 
 ---
 
@@ -29,6 +30,9 @@
 | [`02_bpmn_support.svg`](02_bpmn_support.svg) | 可转换 / 近似 / 不可转换 三栏 |
 | [`03_verification_results.svg`](03_verification_results.svg) | LTS 摘要 + 6 项性质验证 |
 | [`04_local_vs_web.svg`](04_local_vs_web.svg) | 本地 vs 网页语义对照 + 答辩要点 |
+| [`05_three_way_comparison.svg`](05_three_way_comparison.svg) | 本方法 vs 网页一键 vs 直接 BPMN→mCRL2 |
+| [`06_reachability_comparison.svg`](06_reachability_comparison.svg) | 关键行为可达性柱状对比 |
+| [`METHOD_COMPARISON.md`](METHOD_COMPARISON.md) | 方法差异文字说明 |
 
 ---
 
