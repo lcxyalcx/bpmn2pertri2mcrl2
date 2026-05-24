@@ -116,9 +116,27 @@ python scripts/check_bpmn_compatibility.py path/to/your.bpmn
 
 当前仓库内 4 个 BPMN 样例 **4/4 兼容**（结构转换 + mCRL2 语法验证均通过）。
 
-**支持的 BPMN 元素：** `task`、`startEvent`、`endEvent`、`intermediateCatchEvent`、`parallelGateway`、`eventBasedGateway`、`sequenceFlow`、`messageFlow`
+完整支持范围见 **[`docs/BPMN_SUPPORT.md`](docs/BPMN_SUPPORT.md)**。
 
-**不支持（检测到即报不兼容）：** `exclusiveGateway`、`inclusiveGateway`、`subProcess`、`callActivity`、`boundaryEvent`、`userTask` / `serviceTask` 等专用任务类型等。详见验证报告第 4 节。
+### 可转换（✅）
+
+| 类别 | 元素 |
+| --- | --- |
+| 事件 | `startEvent`, `endEvent`, `intermediateCatchEvent`, `intermediateThrowEvent` |
+| 活动 | `task`（generic） |
+| 网关 | `parallelGateway`, `eventBasedGateway`, `exclusiveGateway`, `inclusiveGateway`, `complexGateway` |
+| 流 | `sequenceFlow`, `messageFlow` |
+
+### 不可转换（❌）
+
+| 类别 | 元素 |
+| --- | --- |
+| 子结构 | `subProcess`, `callActivity`, `transaction`, `adHocSubProcess`, `eventSubProcess` |
+| 事件 | `boundaryEvent` |
+| 任务类型 | `userTask`, `serviceTask`, `scriptTask` 等（须改为 generic `task`） |
+| 其他 | 数据对象、多实例、补偿、资源约束、网关条件表达式、真实时间 |
+
+> ⚠️ 网关与 timer **可转换**，但不解析 BPMN 条件表达式；OR 网关按结构近似，详见 `docs/BPMN_SUPPORT.md`。
 
 本地 vs 网页转换对照（需 Playwright + 网络）：
 
@@ -248,7 +266,7 @@ $$
 - 默认使用 transition 名称生成语义化 action；使用 `--generic-actions` 时生成 `fire_t_i`
 - 标记向量 `Marking` 作为状态；守卫条件为输入 place 的 token >= 1
 - 更新函数用 mCRL2 的 `lambda` 构造
-- 适用范围为 **Pizza 型协作 BPMN 子集**，非完整 BPMN 2.0；详见 [`docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md`](docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md)
+- 适用范围见 [`docs/BPMN_SUPPORT.md`](docs/BPMN_SUPPORT.md)；验证报告见 [`docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md`](docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md)
 
 ## 🗂 文件结构
 
@@ -270,6 +288,7 @@ $$
 
 ## 📚 更多文档
 
+- [`docs/BPMN_SUPPORT.md`](docs/BPMN_SUPPORT.md) — **BPMN 可转换 / 不可转换元素清单**
 - [`docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md`](docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md) — 兼容性验证报告
 - [`docs/PROJECT_SUMMARY.md`](docs/PROJECT_SUMMARY.md) — 项目工作说明
 - [`PROCESS.md`](PROCESS.md) — 转换流程原理

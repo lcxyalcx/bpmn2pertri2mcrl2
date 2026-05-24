@@ -1,8 +1,12 @@
 {
   "supported_flow_nodes": [
+    "complexGateway",
     "endEvent",
     "eventBasedGateway",
+    "exclusiveGateway",
+    "inclusiveGateway",
     "intermediateCatchEvent",
+    "intermediateThrowEvent",
     "parallelGateway",
     "startEvent",
     "task"
@@ -12,13 +16,9 @@
     "sequenceFlow"
   ],
   "unsupported_flow_nodes": {
-    "exclusiveGateway": "XOR 分支条件未建模",
-    "inclusiveGateway": "OR 分支条件未建模",
-    "complexGateway": "复杂网关未建模",
     "subProcess": "子流程未展开",
     "callActivity": "调用活动未建模",
     "boundaryEvent": "边界事件未建模",
-    "intermediateThrowEvent": "中间抛出事件未建模",
     "serviceTask": "仅识别 generic task，不识别 serviceTask",
     "userTask": "仅识别 generic task，不识别 userTask",
     "scriptTask": "仅识别 generic task，不识别 scriptTask",

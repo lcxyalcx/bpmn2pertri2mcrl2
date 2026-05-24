@@ -6,9 +6,13 @@
 
 | BPMN 元素 | 状态 |
 | --- | --- |
+| `complexGateway` | 支持 |
 | `endEvent` | 支持 |
 | `eventBasedGateway` | 支持 |
+| `exclusiveGateway` | 支持 |
+| `inclusiveGateway` | 支持 |
 | `intermediateCatchEvent` | 支持 |
+| `intermediateThrowEvent` | 支持 |
 | `parallelGateway` | 支持 |
 | `startEvent` | 支持 |
 | `task` | 支持 |
@@ -18,11 +22,7 @@
 | `boundaryEvent` | 不支持（边界事件未建模） |
 | `businessRuleTask` | 不支持（仅识别 generic task，不识别 businessRuleTask） |
 | `callActivity` | 不支持（调用活动未建模） |
-| `complexGateway` | 不支持（复杂网关未建模） |
 | `eventSubProcess` | 不支持（事件子流程未建模） |
-| `exclusiveGateway` | 不支持（XOR 分支条件未建模） |
-| `inclusiveGateway` | 不支持（OR 分支条件未建模） |
-| `intermediateThrowEvent` | 不支持（中间抛出事件未建模） |
 | `manualTask` | 不支持（仅识别 generic task，不识别 manualTask） |
 | `receiveTask` | 不支持（仅识别 generic task，不识别 receiveTask） |
 | `scriptTask` | 不支持（仅识别 generic task，不识别 scriptTask） |

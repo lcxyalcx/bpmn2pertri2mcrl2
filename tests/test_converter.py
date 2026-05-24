@@ -96,7 +96,104 @@ class TestConverter(unittest.TestCase):
         self.assertTrue(report.compatible)
         self.assertTrue(report.mcrl2_generated)
 
-    def test_compatibility_checker_rejects_exclusive_gateway(self):
+    def test_exclusive_gateway_bpmn_to_pnml(self):
+        bpmn = """<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="Start_1" />
+    <bpmn:exclusiveGateway id="Gateway_1" />
+    <bpmn:task id="Task_A" name="A" />
+    <bpmn:task id="Task_B" name="B" />
+    <bpmn:endEvent id="End_1" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Gateway_1" targetRef="Task_A" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Gateway_1" targetRef="Task_B" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_A" targetRef="End_1" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_B" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bpmn_path = pathlib.Path(tmp_dir) / "xor_split.bpmn"
+            pnml_path = pathlib.Path(tmp_dir) / "xor_split.pnml"
+            bpmn_path.write_text(bpmn, encoding="utf-8")
+            convert_bpmn_to_pnml(bpmn_path, pnml_path)
+            root = ET.parse(pnml_path).getroot()
+
+        transition_names = {
+            element.find(".//{*}name/{*}text").text
+            for element in root.iter()
+            if element.tag.split("}", 1)[-1] == "transition"
+            for _ in [0]
+            if element.find(".//{*}name/{*}text") is not None
+            and element.find(".//{*}name/{*}text").text
+        }
+        self.assertIn("choose Flow_2", transition_names)
+        self.assertIn("choose Flow_3", transition_names)
+
+    def test_inclusive_gateway_split_generates_subset_transitions(self):
+        from bpmn2pnml_local import convert_bpmn_to_pn, parse_bpmn
+
+        bpmn = """<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="Start_1" />
+    <bpmn:inclusiveGateway id="Gateway_1" />
+    <bpmn:task id="Task_A" name="A" />
+    <bpmn:task id="Task_B" name="B" />
+    <bpmn:endEvent id="End_1" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Gateway_1" targetRef="Task_A" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Gateway_1" targetRef="Task_B" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_A" targetRef="End_1" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_B" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bpmn_path = pathlib.Path(tmp_dir) / "or_split.bpmn"
+            bpmn_path.write_text(bpmn, encoding="utf-8")
+            net = convert_bpmn_to_pn(parse_bpmn(bpmn_path))
+
+        self.assertEqual(len(net.transitions), 7)
+        self.assertTrue(any(name.startswith("activate ") for name in (t.name for t in net.transitions.values())))
+
+    def test_intermediate_throw_event_produces_message_place(self):
+        from bpmn2pnml_local import convert_bpmn_to_pn, parse_bpmn
+
+        bpmn = """<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="Start_1" />
+    <bpmn:task id="Task_1" name="Prepare" />
+    <bpmn:intermediateThrowEvent id="Throw_1" name="Notify" />
+    <bpmn:endEvent id="End_1" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="Throw_1" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Throw_1" targetRef="End_1" />
+  </bpmn:process>
+  <bpmn:process id="Process_2">
+    <bpmn:startEvent id="Start_2" />
+    <bpmn:endEvent id="End_2" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Start_2" targetRef="End_2" />
+  </bpmn:process>
+  <bpmn:messageFlow id="Msg_1" sourceRef="Throw_1" targetRef="Start_2" />
+</bpmn:definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bpmn_path = pathlib.Path(tmp_dir) / "throw.bpmn"
+            bpmn_path.write_text(bpmn, encoding="utf-8")
+            net = convert_bpmn_to_pn(parse_bpmn(bpmn_path))
+
+        self.assertIn("Msg_1", net.places)
+        throw_transitions = [t for t in net.transitions.values() if t.name == "Notify"]
+        self.assertEqual(len(throw_transitions), 1)
+        throw_tid = throw_transitions[0].tid
+        post_places = {arc.target for arc in net.arcs if arc.source == throw_tid}
+        self.assertIn("Flow_3", post_places)
+        self.assertIn("Msg_1", post_places)
+
+    def test_compatibility_checker_accepts_exclusive_gateway(self):
         import sys
 
         sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "scripts"))
@@ -120,8 +217,8 @@ class TestConverter(unittest.TestCase):
             bpmn_path.write_text(bpmn, encoding="utf-8")
             report = analyze_bpmn(bpmn_path, timeout=30)
 
-        self.assertFalse(report.compatible)
-        self.assertTrue(any("exclusiveGateway" in issue for issue in report.blocking_issues))
+        self.assertTrue(report.compatible)
+        self.assertTrue(report.mcrl2_generated)
 
 
 if __name__ == "__main__":

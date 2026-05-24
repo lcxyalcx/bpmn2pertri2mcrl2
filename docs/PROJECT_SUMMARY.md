@@ -278,37 +278,30 @@ docs/verification/pizza_official/pizza_official_bounded.mcrl2 -> LPS
 
 ## 9. 当前边界与后续方向
 
-当前本地 BPMN-aware PNML 转换器覆盖了官方 Pizza 所需的 BPMN 子集，主要包括：
+当前本地 BPMN-aware PNML 转换器支持范围见 [`docs/BPMN_SUPPORT.md`](BPMN_SUPPORT.md)，主要包括：
 
 ```text
+startEvent / endEvent
+intermediateCatchEvent / intermediateThrowEvent
 task
-startEvent
-endEvent
-intermediateCatchEvent
-parallelGateway
-eventBasedGateway
-sequenceFlow
-messageFlow
+parallelGateway / eventBasedGateway / exclusiveGateway / inclusiveGateway / complexGateway
+sequenceFlow / messageFlow
 ```
 
 当前尚未完整覆盖：
 
 ```text
-exclusiveGateway / inclusiveGateway 的一般条件语义
-subprocess
-boundary event
-compensation
+subProcess / callActivity / boundaryEvent
+userTask / serviceTask 等专用任务类型
+网关条件表达式 / default flow
 data object / data association
-多实例任务
-真实时间语义
-资源约束
-复杂事件定义
+多实例任务 / 补偿 / 资源约束 / 真实时间语义
 ```
 
 建议下一步工作：
 
-1. 将 `bpmn2pnml_local.py` 扩展为更通用的 BPMN 子集转换器。
-2. 为 gateway、timer、message flow 增加更多官方 BPMN 示例测试。
+1. 识别 `userTask` 等专用任务类型并映射为 generic transition。
+2. 支持 `subProcess` 展开。
 3. 将 modal formula 检查从 action witness 扩展为更严格的 PBES 性质验证。
 4. 增加 Petri net 可视化，展示 BPMN 节点到 PNML place/transition 的映射。
 5. 把当前脚本整理成统一 CLI，例如 `python convert.py bpmn --verify --visualize`。

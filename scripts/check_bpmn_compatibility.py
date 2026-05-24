@@ -26,13 +26,9 @@ from pnml2mcrl2 import convert_file as convert_pnml_to_mcrl2, parse_pnml  # noqa
 SUPPORTED_FLOWS = {"sequenceFlow", "messageFlow"}
 
 UNSUPPORTED_FLOW_NODES: dict[str, str] = {
-    "exclusiveGateway": "XOR 分支条件未建模",
-    "inclusiveGateway": "OR 分支条件未建模",
-    "complexGateway": "复杂网关未建模",
     "subProcess": "子流程未展开",
     "callActivity": "调用活动未建模",
     "boundaryEvent": "边界事件未建模",
-    "intermediateThrowEvent": "中间抛出事件未建模",
     "serviceTask": "仅识别 generic task，不识别 serviceTask",
     "userTask": "仅识别 generic task，不识别 userTask",
     "scriptTask": "仅识别 generic task，不识别 scriptTask",

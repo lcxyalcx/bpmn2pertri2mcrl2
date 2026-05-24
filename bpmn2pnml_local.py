@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 """Convert a practical BPMN collaboration subset to PNML.
 
-The converter is intentionally conservative and targets the official Pizza
-example shape: sequence flows become places, flow nodes become transitions, and
-gating message flows become places consumed by message/start/catch receivers.
-Informational task-to-task message flows are omitted to avoid artificial
-request/response cycles in the Petri net.
+Supported flow nodes: startEvent, endEvent, task, intermediateCatchEvent,
+intermediateThrowEvent, parallelGateway, eventBasedGateway, exclusiveGateway,
+inclusiveGateway, complexGateway.
+
+Sequence flows become places, flow nodes become transitions, and gating message
+flows become places consumed by message/start/catch receivers. Throw events
+produce outgoing messageFlow places. Informational task-to-task message flows
+are omitted to avoid artificial request/response cycles in the Petri net.
+
+See docs/BPMN_SUPPORT.md for the full support matrix.
 """
 
 from __future__ import annotations
 
 import argparse
 import dataclasses
+import itertools
 import pathlib
 import re
 import xml.etree.ElementTree as ET
@@ -73,9 +79,15 @@ FLOW_NODE_TAGS = {
     "endEvent",
     "task",
     "intermediateCatchEvent",
+    "intermediateThrowEvent",
     "parallelGateway",
     "eventBasedGateway",
+    "exclusiveGateway",
+    "inclusiveGateway",
+    "complexGateway",
 }
+
+CHOICE_GATEWAY_TAGS = {"eventBasedGateway", "exclusiveGateway", "complexGateway"}
 
 
 def _strip_namespace(tag: str) -> str:
@@ -103,6 +115,14 @@ def _display_name(node: BpmnNode) -> str:
         return f"parallel gateway {node.nid}"
     if node.tag == "eventBasedGateway":
         return f"event gateway {node.nid}"
+    if node.tag == "exclusiveGateway":
+        return f"xor gateway {node.nid}"
+    if node.tag == "inclusiveGateway":
+        return f"or gateway {node.nid}"
+    if node.tag == "complexGateway":
+        return f"complex gateway {node.nid}"
+    if node.tag == "intermediateThrowEvent":
+        return f"throw {node.nid}"
     if node.tag == "endEvent":
         return "End"
     return node.nid
@@ -198,6 +218,78 @@ def _add_transition(
         _add_arc(net, tid, place_id)
 
 
+def _non_empty_subsets(items: list[Flow]) -> list[list[Flow]]:
+    subsets: list[list[Flow]] = []
+    for size in range(1, len(items) + 1):
+        subsets.extend(itertools.combinations(items, size))
+    return [list(subset) for subset in subsets]
+
+
+def _add_choice_gateway_transitions(
+    net: PetriNet,
+    node: BpmnNode,
+    incoming_seq: list[Flow],
+    outgoing_seq: list[Flow],
+    *,
+    label_prefix: str = "choose",
+) -> None:
+    for incoming_flow in incoming_seq:
+        for outgoing_flow in outgoing_seq:
+            tid = f"{node.nid}_from_{incoming_flow.fid}_to_{outgoing_flow.fid}"
+            _add_transition(
+                net,
+                tid,
+                f"{label_prefix} {outgoing_flow.name}",
+                [incoming_flow.fid],
+                [outgoing_flow.fid],
+            )
+
+
+def _add_inclusive_gateway_transitions(
+    net: PetriNet,
+    node: BpmnNode,
+    incoming_seq: list[Flow],
+    outgoing_seq: list[Flow],
+) -> None:
+    if len(incoming_seq) == 1 and len(outgoing_seq) > 1:
+        incoming_place = incoming_seq[0].fid
+        for subset in _non_empty_subsets(outgoing_seq):
+            post = [flow.fid for flow in subset]
+            suffix = "_or_".join(_safe_id(flow.fid) for flow in subset)
+            tid = f"{node.nid}_to_{suffix}"
+            label = " / ".join(flow.name for flow in subset)
+            _add_transition(net, tid, f"activate {label}", [incoming_place], post)
+        return
+
+    if len(outgoing_seq) == 1 and len(incoming_seq) > 1:
+        outgoing_place = outgoing_seq[0].fid
+        for subset in _non_empty_subsets(incoming_seq):
+            pre = [flow.fid for flow in subset]
+            suffix = "_and_".join(_safe_id(flow.fid) for flow in subset)
+            tid = f"{node.nid}_from_{suffix}"
+            label = " / ".join(flow.name for flow in subset)
+            _add_transition(net, tid, f"join {label}", pre, [outgoing_place])
+        return
+
+    if len(incoming_seq) == 1 and len(outgoing_seq) == 1:
+        _add_transition(
+            net,
+            node.nid,
+            _display_name(node),
+            [incoming_seq[0].fid],
+            [outgoing_seq[0].fid],
+        )
+        return
+
+    _add_choice_gateway_transitions(
+        net,
+        node,
+        incoming_seq,
+        outgoing_seq,
+        label_prefix="route",
+    )
+
+
 def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
     net = PetriNet(places={}, transitions={}, arcs=[])
     gating_messages = {
@@ -210,6 +302,10 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
         net.places[flow.fid] = Place(flow.fid, flow.name, 0)
     for flow in gating_messages.values():
         net.places[flow.fid] = Place(flow.fid, flow.name, 0)
+    for flow in model.message_flows.values():
+        source = model.nodes.get(flow.source)
+        if source is not None and source.tag == "intermediateThrowEvent":
+            net.places[flow.fid] = Place(flow.fid, flow.name, 0)
     for process_id in model.process_ids:
         net.places[f"start_p_{_safe_id(process_id)}"] = Place(
             f"start_p_{_safe_id(process_id)}",
@@ -243,17 +339,10 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
         elif node.tag == "endEvent":
             end_id = f"end_p_{_safe_id(node.process_id or 'process')}"
             _add_transition(net, node.nid, _display_name(node), incoming, [end_id])
-        elif node.tag == "eventBasedGateway":
-            for incoming_flow in incoming_seq:
-                for outgoing_flow in outgoing_seq:
-                    tid = f"{node.nid}_from_{incoming_flow.fid}_to_{outgoing_flow.fid}"
-                    _add_transition(
-                        net,
-                        tid,
-                        f"choose {outgoing_flow.name}",
-                        [incoming_flow.fid],
-                        [outgoing_flow.fid],
-                    )
+        elif node.tag in CHOICE_GATEWAY_TAGS:
+            _add_choice_gateway_transitions(net, node, incoming_seq, outgoing_seq)
+        elif node.tag == "inclusiveGateway":
+            _add_inclusive_gateway_transitions(net, node, incoming_seq, outgoing_seq)
         elif node.tag == "intermediateCatchEvent":
             message_inputs = [flow.fid for flow in incoming_msg]
             for flow in incoming_seq:
@@ -264,6 +353,28 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
                     _display_name(node),
                     [flow.fid, *message_inputs],
                     outgoing,
+                )
+        elif node.tag == "intermediateThrowEvent":
+            message_outputs = [flow.fid for flow in _outgoing_flows(model.message_flows, node.nid)]
+            message_inputs = [flow.fid for flow in incoming_msg]
+            post = [*outgoing, *message_outputs]
+            if incoming_seq:
+                for flow in incoming_seq:
+                    tid = f"{node.nid}_from_{flow.fid}"
+                    _add_transition(
+                        net,
+                        tid,
+                        _display_name(node),
+                        [flow.fid, *message_inputs],
+                        post,
+                    )
+            else:
+                _add_transition(
+                    net,
+                    node.nid,
+                    _display_name(node),
+                    message_inputs,
+                    post,
                 )
         elif node.tag in {"task", "parallelGateway"}:
             pre = [*incoming, *[flow.fid for flow in incoming_msg]]
