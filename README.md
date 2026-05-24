@@ -1,6 +1,12 @@
-# 🧩 PNML to mCRL2 Converter
+# 🧩 bpmn2pertri2mcrl2
 
 将 BPMN 转换为 Petri net PNML，再将 PNML 转换为 mCRL2 进程模型。仓库保留 bpmn2petrinet.com 的网页转换入口，同时提供一个面向官方 Pizza 协作流程的本地 BPMN-aware PNML 转换器，用于更准确处理 message flow、timer 和 event-based gateway。
+
+完整流水线：
+
+```text
+BPMN → PNML (Petri net) → mCRL2 → LPS / LTS / 性质验证
+```
 
 ## 📥 输入输出约定
 
@@ -94,13 +100,39 @@ flowchart LR
 
 ![mCRL2 Structure](docs/visuals/pizza_mcrl2_structure.svg)
 
-### 2) 运行测试
+### 4) 兼容性验证
+
+在接入新 BPMN 前，可先运行兼容性扫描：
 
 ```bash
-python -m unittest
+python scripts/check_bpmn_compatibility.py examples/
+python scripts/check_bpmn_compatibility.py path/to/your.bpmn
 ```
 
-### 3) 运行 modal formula / LTS 检查
+报告输出：
+
+- [`docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md`](docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md) — 正式兼容性验证报告
+- [`docs/compatibility/compatibility_report.json`](docs/compatibility/compatibility_report.json) — 机器可读结果
+
+当前仓库内 4 个 BPMN 样例 **4/4 兼容**（结构转换 + mCRL2 语法验证均通过）。
+
+**支持的 BPMN 元素：** `task`、`startEvent`、`endEvent`、`intermediateCatchEvent`、`parallelGateway`、`eventBasedGateway`、`sequenceFlow`、`messageFlow`
+
+**不支持（检测到即报不兼容）：** `exclusiveGateway`、`inclusiveGateway`、`subProcess`、`callActivity`、`boundaryEvent`、`userTask` / `serviceTask` 等专用任务类型等。详见验证报告第 4 节。
+
+本地 vs 网页转换对照（需 Playwright + 网络）：
+
+```bash
+python scripts/compare_pizza_local_vs_web.py
+```
+
+### 5) 运行测试
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+### 6) 运行 modal formula / LTS 检查
 
 ```bash
 python scripts/check_pizza_official.py
@@ -211,23 +243,34 @@ $$
 - 兼容 bpmn2petrinet.com 导出的 PNML，也提供本地 BPMN-aware PNML 生成器
 - 官方完整版 Pizza 示例已贯通整个流程（见 `examples/pizza_official.bpmn`、`examples/pizza_official_local.pnml`、`examples/pizza_official_local.mcrl2`）
 - 轻量示例只作为 smoke test 保留（见 `examples/pizza.bpmn` 和 `examples/pizza.pnml`）
-
 - 该脚本基于 PNML 的 `place / transition / arc` 结构进行解析
-- 转换规则：
 - 每个 transition 生成一个 mCRL2 action
 - 默认使用 transition 名称生成语义化 action；使用 `--generic-actions` 时生成 `fire_t_i`
-- 标记向量 `Marking` 作为状态
-- 守卫条件为输入 place 的 token >= 1
+- 标记向量 `Marking` 作为状态；守卫条件为输入 place 的 token >= 1
 - 更新函数用 mCRL2 的 `lambda` 构造
+- 适用范围为 **Pizza 型协作 BPMN 子集**，非完整 BPMN 2.0；详见 [`docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md`](docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md)
 
 ## 🗂 文件结构
 
-- `pnml2mcrl2.py`：主转换脚本
-- `bpmn2pnml_local.py`：本地 BPMN → PNML 转换脚本
-- `bpmn2mcrl2_web.py`：BPMN → PNML → mCRL2（网页自动化）
-- `examples/pizza_official.bpmn`：官方 Pizza BPMN 示例
-- `examples/pizza_official_local.pnml`：本地转换器导出的官方 Pizza PNML
-- `examples/pizza_official_local.mcrl2`：官方 Pizza 示例的本地语义 mCRL2 输出
-- `examples/pizza_official.pnml`：bpmn2petrinet.com 导出的对照 PNML
-- `examples/pizza.bpmn` / `examples/pizza.pnml`：简化 smoke test
-- `tests/test_converter.py`：最小验证测试
+| 路径 | 说明 |
+| --- | --- |
+| `bpmn2pnml_local.py` | 本地 BPMN → PNML 转换器 |
+| `pnml2mcrl2.py` | PNML → mCRL2 转换器 |
+| `bpmn2mcrl2_web.py` | BPMN → PNML → mCRL2（bpmn2petrinet.com 网页自动化） |
+| `scripts/check_bpmn_compatibility.py` | BPMN 兼容性扫描 |
+| `scripts/check_pizza_official.py` | 官方 Pizza modal formula / LTS 验证 |
+| `scripts/compare_pizza_local_vs_web.py` | 本地 vs 网页转换对照 |
+| `scripts/rerun_pizza_official_pipeline.py` | 重跑官方 Pizza 完整流水线 |
+| `examples/pizza_official.bpmn` | 官方 Pizza BPMN 示例 |
+| `examples/pizza_official_local.pnml` | 本地转换器生成的 PNML |
+| `examples/pizza_official_local.mcrl2` | 本地语义 mCRL2 输出 |
+| `docs/compatibility/` | 兼容性验证报告与 JSON 结果 |
+| `docs/verification/pizza_official/` | bounded LTS、性质验证结果 |
+| `tests/test_converter.py` | 单元测试（含兼容性检查） |
+
+## 📚 更多文档
+
+- [`docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md`](docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md) — 兼容性验证报告
+- [`docs/PROJECT_SUMMARY.md`](docs/PROJECT_SUMMARY.md) — 项目工作说明
+- [`PROCESS.md`](PROCESS.md) — 转换流程原理
+- [`PROGRESS.md`](PROGRESS.md) — 项目进展

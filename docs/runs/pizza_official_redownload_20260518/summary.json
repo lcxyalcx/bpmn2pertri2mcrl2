@@ -1,0 +1,50 @@
+{
+  "source": {
+    "page": "https://maude.lcc.uma.es/BPMN-R/pizza/",
+    "bpmn": "https://maude.lcc.uma.es/BPMN-R/pizza/files/triso%20-%20Order%20Process%20for%20Pizza%20V4.bpmn",
+    "bpmn_with_comments": "https://maude.lcc.uma.es/BPMN-R/pizza/files/pizza-with-comments.bpmn",
+    "image": "https://maude.lcc.uma.es/BPMN-R/pizza/images/pizza-with-comments.png"
+  },
+  "bpmn": {
+    "processes": 2,
+    "nodes": 18,
+    "sequence_flows": 18,
+    "message_flows": 6,
+    "tag_counts": {
+      "startEvent": 2,
+      "parallelGateway": 1,
+      "intermediateCatchEvent": 3,
+      "task": 9,
+      "endEvent": 2,
+      "eventBasedGateway": 1
+    }
+  },
+  "pnml": {
+    "places": 27,
+    "transitions": 23,
+    "arcs": 56,
+    "initial_places": [
+      "Start _6-2"
+    ]
+  },
+  "mcrl2": {
+    "places": 27,
+    "actions": 23,
+    "sample_actions": [
+      "order_a_pizza",
+      "choose_6_422",
+      "choose_6_424",
+      "choose_6_422_2",
+      "choose_6_424_2",
+      "pizza_received",
+      "a_60_minutes",
+      "ask_for_the_pizza"
+    ]
+  },
+  "lts": {
+    "initial_state": 0,
+    "states": "200",
+    "transitions": "199",
+    "aut_transitions": 199
+  }
+}

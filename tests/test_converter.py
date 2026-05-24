@@ -85,6 +85,44 @@ class TestConverter(unittest.TestCase):
         self.assertIn("% Max place tokens: 1", content)
         self.assertIn("(m(p_2) < 1) -> a_60_minutes", content)
 
+    def test_compatibility_checker_accepts_supported_bpmn(self):
+        import sys
+
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "scripts"))
+        from check_bpmn_compatibility import analyze_bpmn
+
+        base_dir = pathlib.Path(__file__).resolve().parents[1]
+        report = analyze_bpmn(base_dir / "examples" / "pizza.bpmn", timeout=30)
+        self.assertTrue(report.compatible)
+        self.assertTrue(report.mcrl2_generated)
+
+    def test_compatibility_checker_rejects_exclusive_gateway(self):
+        import sys
+
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "scripts"))
+        from check_bpmn_compatibility import analyze_bpmn
+
+        bpmn = """<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="Start_1" />
+    <bpmn:exclusiveGateway id="Gateway_1" />
+    <bpmn:task id="Task_1" name="A" />
+    <bpmn:endEvent id="End_1" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Gateway_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Gateway_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_1" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bpmn_path = pathlib.Path(tmp_dir) / "xor.bpmn"
+            bpmn_path.write_text(bpmn, encoding="utf-8")
+            report = analyze_bpmn(bpmn_path, timeout=30)
+
+        self.assertFalse(report.compatible)
+        self.assertTrue(any("exclusiveGateway" in issue for issue in report.blocking_issues))
+
 
 if __name__ == "__main__":
     unittest.main()

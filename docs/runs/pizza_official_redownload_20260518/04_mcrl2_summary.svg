@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="492" viewBox="0 0 960 492">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="32" y="40" font-family="Helvetica" font-size="24" font-weight="700" fill="#0f172a">mCRL2 model summary</text>
+  <text x="32" y="66" font-family="Helvetica" font-size="13" fill="#475569">The PNML net is encoded as a marking-transition process.</text>
+  <rect x="32" y="98" width="250" height="130" rx="12" fill="#eff6ff" stroke="#60a5fa"/>
+  <text x="56" y="128" font-family="Helvetica" font-size="16" font-weight="700" fill="#1d4ed8">Sorts and state</text>
+  <text x="56" y="156" font-family="Helvetica" font-size="13" fill="#334155">Place aliases: 27</text>
+  <text x="56" y="178" font-family="Helvetica" font-size="13" fill="#334155">Marking = Place -&gt; Int</text>
+  <text x="56" y="200" font-family="Helvetica" font-size="13" fill="#334155">Initial marking comes from PNML initial tokens</text>
+  <rect x="322" y="98" width="250" height="130" rx="12" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="346" y="128" font-family="Helvetica" font-size="16" font-weight="700" fill="#92400e">Actions and guards</text>
+  <text x="346" y="156" font-family="Helvetica" font-size="13" fill="#334155">Actions generated: 23</text>
+  <text x="346" y="178" font-family="Helvetica" font-size="13" fill="#334155">Each transition becomes one action with an enabling guard</text>
+  <text x="346" y="200" font-family="Helvetica" font-size="13" fill="#334155">Enabled iff all input places contain tokens</text>
+  <rect x="612" y="98" width="316" height="130" rx="12" fill="#dcfce7" stroke="#22c55e"/>
+  <text x="636" y="128" font-family="Helvetica" font-size="16" font-weight="700" fill="#166534">Update style</text>
+  <text x="636" y="156" font-family="Helvetica" font-size="13" fill="#334155">update_t(m) decrements pre-places and increments post-places</text>
+  <text x="636" y="178" font-family="Helvetica" font-size="13" fill="#334155">proc P(m) = guard -&gt; action . P(update_t(m)) + ...</text>
+  <text x="636" y="200" font-family="Helvetica" font-size="13" fill="#334155">Bounded LTS view uses max-place-tokens=1</text>
+  <text x="32" y="268" font-family="Helvetica" font-size="16" font-weight="700" fill="#0f172a">Sample semantic actions</text>
+  <text x="56" y="296" font-family="Helvetica" font-size="13" fill="#334155">order_a_pizza</text>
+  <text x="56" y="320" font-family="Helvetica" font-size="13" fill="#334155">choose_6_422</text>
+  <text x="56" y="344" font-family="Helvetica" font-size="13" fill="#334155">choose_6_424</text>
+  <text x="56" y="368" font-family="Helvetica" font-size="13" fill="#334155">choose_6_422_2</text>
+  <text x="56" y="392" font-family="Helvetica" font-size="13" fill="#334155">choose_6_424_2</text>
+  <text x="56" y="416" font-family="Helvetica" font-size="13" fill="#334155">pizza_received</text>
+  <text x="56" y="440" font-family="Helvetica" font-size="13" fill="#334155">a_60_minutes</text>
+  <text x="56" y="464" font-family="Helvetica" font-size="13" fill="#334155">ask_for_the_pizza</text>
+</svg>

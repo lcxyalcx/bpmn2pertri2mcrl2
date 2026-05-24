@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="230" viewBox="0 0 1180 230">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 z" fill="#334155"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="36" y="38" font-family="Helvetica" font-size="24" font-weight="700" fill="#0f172a">Pizza official rerun pipeline</text>
+  <text x="36" y="64" font-family="Helvetica" font-size="13" fill="#475569">Downloaded from the official BPMN-R Pizza example page, then converted locally.</text>
+
+  <rect x="40" y="95" width="220" height="88" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="150" y="124" text-anchor="middle" font-family="Helvetica" font-size="16" font-weight="700" fill="#1d4ed8">1. BPMN</text>
+  <text x="150" y="148" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#334155">pizza_official_downloaded.bpmn</text>
+  <text x="150" y="166" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#64748b">official download</text>
+
+  <rect x="335" y="95" width="220" height="88" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="445" y="124" text-anchor="middle" font-family="Helvetica" font-size="16" font-weight="700" fill="#166534">2. PNML</text>
+  <text x="445" y="148" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#334155">pizza_official_downloaded_local.pnml</text>
+  <text x="445" y="166" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#64748b">bpmn2pnml_local.py</text>
+
+  <rect x="630" y="95" width="220" height="88" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="740" y="124" text-anchor="middle" font-family="Helvetica" font-size="16" font-weight="700" fill="#92400e">3. mCRL2</text>
+  <text x="740" y="148" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#334155">pizza_official_downloaded_local.mcrl2</text>
+  <text x="740" y="166" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#64748b">pnml2mcrl2.py</text>
+
+  <rect x="925" y="95" width="220" height="88" rx="12" fill="#fce7f3" stroke="#db2777" stroke-width="2"/>
+  <text x="1035" y="124" text-anchor="middle" font-family="Helvetica" font-size="16" font-weight="700" fill="#be185d">4. Bounded LTS</text>
+  <text x="1035" y="148" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#334155">pizza_official_downloaded_bounded_lts.svg</text>
+  <text x="1035" y="166" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#64748b">mcrl22lps + lps2lts</text>
+
+  <line x1="260" y1="139" x2="335" y2="139" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="555" y1="139" x2="630" y2="139" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="850" y1="139" x2="925" y2="139" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+</svg>

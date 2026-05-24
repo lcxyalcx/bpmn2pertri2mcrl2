@@ -1,0 +1,351 @@
+{
+  "bpmn": {
+    "processes": 2,
+    "nodes": 18,
+    "sequence_flows": 18,
+    "message_flows": 6,
+    "tasks": 9,
+    "parallel_gateways": 1,
+    "event_gateways": 1,
+    "catch_events": 3
+  },
+  "local": {
+    "pnml": {
+      "places": 27,
+      "transitions": 23,
+      "arcs": 56
+    },
+    "mcrl2": {
+      "places": 27,
+      "actions": 23
+    },
+    "lts": {
+      "states": "200",
+      "transitions": "199",
+      "labels": "18 (including a tau label)",
+      "deterministic": "yes"
+    },
+    "reachability": {
+      "order_received": true,
+      "deliver_the_pizza": true,
+      "receive_payment": true,
+      "calm_customer": true,
+      "joined_end": true
+    }
+  },
+  "web": {
+    "pnml": {
+      "places": 24,
+      "transitions": 18,
+      "arcs": 46
+    },
+    "mcrl2": {
+      "places": 24,
+      "actions": 18
+    },
+    "lts": {
+      "states": "54",
+      "transitions": "53",
+      "labels": "10 (including a tau label)",
+      "deterministic": "yes"
+    },
+    "reachability": {
+      "order_received": true,
+      "deliver_the_pizza": true,
+      "receive_payment": false,
+      "calm_customer": false,
+      "joined_end": false
+    }
+  },
+  "local_transition_map": {
+    "order_a_pizza": {
+      "alias": "t_0",
+      "name": "Order a pizza",
+      "tid": "_6-127",
+      "pre": "p_1",
+      "post": "p_2, p_14"
+    },
+    "choose_6_422": {
+      "alias": "t_1",
+      "name": "choose _6-422",
+      "tid": "_6-180_from__6-420_to__6-422",
+      "pre": "p_2",
+      "post": "p_3"
+    },
+    "choose_6_424": {
+      "alias": "t_2",
+      "name": "choose _6-424",
+      "tid": "_6-180_from__6-420_to__6-424",
+      "pre": "p_2",
+      "post": "p_4"
+    },
+    "choose_6_422_2": {
+      "alias": "t_3",
+      "name": "choose _6-422",
+      "tid": "_6-180_from__6-430_to__6-422",
+      "pre": "p_7",
+      "post": "p_3"
+    },
+    "choose_6_424_2": {
+      "alias": "t_4",
+      "name": "choose _6-424",
+      "tid": "_6-180_from__6-430_to__6-424",
+      "pre": "p_7",
+      "post": "p_4"
+    },
+    "pizza_received": {
+      "alias": "t_5",
+      "name": "pizza received",
+      "tid": "_6-202_from__6-422",
+      "pre": "p_3, p_15",
+      "post": "p_6"
+    },
+    "a_60_minutes": {
+      "alias": "t_6",
+      "name": "60 minutes",
+      "tid": "_6-219_from__6-424",
+      "pre": "p_4",
+      "post": "p_5"
+    },
+    "ask_for_the_pizza": {
+      "alias": "t_7",
+      "name": "Ask for the pizza",
+      "tid": "_6-236",
+      "pre": "p_5",
+      "post": "p_7, p_16"
+    },
+    "pay_the_pizza": {
+      "alias": "t_8",
+      "name": "Pay the pizza",
+      "tid": "_6-304",
+      "pre": "p_6",
+      "post": "p_8, p_17"
+    },
+    "eat_the_pizza": {
+      "alias": "t_9",
+      "name": "Eat the pizza",
+      "tid": "_6-355",
+      "pre": "p_8",
+      "post": "p_9"
+    },
+    "hunger_satisfied": {
+      "alias": "t_10",
+      "name": "Hunger satisfied",
+      "tid": "_6-406",
+      "pre": "p_9",
+      "post": "p_24"
+    },
+    "order_received": {
+      "alias": "t_11",
+      "name": "Order received",
+      "tid": "_6-450",
+      "pre": "p_14",
+      "post": "p_10"
+    },
+    "bake_the_pizza": {
+      "alias": "t_12",
+      "name": "Bake the pizza",
+      "tid": "_6-463",
+      "pre": "p_19",
+      "post": "p_11"
+    },
+    "deliver_the_pizza": {
+      "alias": "t_13",
+      "name": "Deliver the pizza",
+      "tid": "_6-514",
+      "pre": "p_11",
+      "post": "p_12, p_15"
+    },
+    "receive_payment": {
+      "alias": "t_14",
+      "name": "Receive payment",
+      "tid": "_6-565",
+      "pre": "p_12, p_17",
+      "post": "p_13"
+    },
+    "hungry_for_pizza": {
+      "alias": "t_15",
+      "name": "Hungry for pizza",
+      "tid": "_6-61",
+      "pre": "p_26",
+      "post": "p_0"
+    },
+    "a_end": {
+      "alias": "t_16",
+      "name": "End",
+      "tid": "_6-616",
+      "pre": "p_13",
+      "post": "p_23"
+    },
+    "parallel_gateway_6_652": {
+      "alias": "t_17",
+      "name": "parallel gateway _6-652",
+      "tid": "_6-652",
+      "pre": "p_10",
+      "post": "p_18, p_19"
+    },
+    "where_is_my_pizza": {
+      "alias": "t_18",
+      "name": "„where is my pizza?“",
+      "tid": "_6-674_from__6-691",
+      "pre": "p_18, p_16",
+      "post": "p_21"
+    },
+    "where_is_my_pizza_2": {
+      "alias": "t_19",
+      "name": "„where is my pizza?“",
+      "tid": "_6-674_from__6-746",
+      "pre": "p_20, p_16",
+      "post": "p_21"
+    },
+    "calm_customer": {
+      "alias": "t_20",
+      "name": "Calm customer",
+      "tid": "_6-695",
+      "pre": "p_21",
+      "post": "p_20"
+    },
+    "select_a_pizza": {
+      "alias": "t_21",
+      "name": "Select a pizza",
+      "tid": "_6-74",
+      "pre": "p_0",
+      "post": "p_1"
+    },
+    "a_end_2": {
+      "alias": "t_22",
+      "name": "End",
+      "tid": "end_t",
+      "pre": "p_23, p_24",
+      "post": "p_22"
+    }
+  },
+  "web_transition_map": {
+    "order_a_pizza": {
+      "alias": "t_0",
+      "name": "Order a pizza",
+      "tid": "_6-127",
+      "pre": "p_1",
+      "post": "p_10"
+    },
+    "pizza_received": {
+      "alias": "t_1",
+      "name": "pizza received",
+      "tid": "_6-202",
+      "pre": "p_11",
+      "post": "p_3"
+    },
+    "a_60_minutes": {
+      "alias": "t_2",
+      "name": "60 minutes",
+      "tid": "_6-219",
+      "pre": "-",
+      "post": "p_2"
+    },
+    "ask_for_the_pizza": {
+      "alias": "t_3",
+      "name": "Ask for the pizza",
+      "tid": "_6-236",
+      "pre": "p_2, p_19",
+      "post": "p_12"
+    },
+    "pay_the_pizza": {
+      "alias": "t_4",
+      "name": "Pay the pizza",
+      "tid": "_6-304",
+      "pre": "p_3, p_13",
+      "post": "p_4, p_14"
+    },
+    "eat_the_pizza": {
+      "alias": "t_5",
+      "name": "Eat the pizza",
+      "tid": "_6-355",
+      "pre": "p_4",
+      "post": "p_5"
+    },
+    "hunger_satisfied": {
+      "alias": "t_6",
+      "name": "Hunger satisfied",
+      "tid": "_6-406",
+      "pre": "p_5",
+      "post": "p_22"
+    },
+    "order_received": {
+      "alias": "t_7",
+      "name": "Order received",
+      "tid": "_6-450",
+      "pre": "p_10",
+      "post": "p_6"
+    },
+    "bake_the_pizza": {
+      "alias": "t_8",
+      "name": "Bake the pizza",
+      "tid": "_6-463",
+      "pre": "p_16",
+      "post": "p_7"
+    },
+    "deliver_the_pizza": {
+      "alias": "t_9",
+      "name": "Deliver the pizza",
+      "tid": "_6-514",
+      "pre": "p_7",
+      "post": "p_8, p_11"
+    },
+    "receive_payment": {
+      "alias": "t_10",
+      "name": "Receive payment",
+      "tid": "_6-565",
+      "pre": "p_8, p_14",
+      "post": "p_9, p_13"
+    },
+    "hungry_for_pizza": {
+      "alias": "t_11",
+      "name": "Hungry for pizza",
+      "tid": "_6-61",
+      "pre": "p_23",
+      "post": "p_0"
+    },
+    "transition_6_616": {
+      "alias": "t_12",
+      "name": "_6-616",
+      "tid": "_6-616",
+      "pre": "p_9",
+      "post": "p_21"
+    },
+    "transition_6_652": {
+      "alias": "t_13",
+      "name": "_6-652",
+      "tid": "_6-652",
+      "pre": "p_6",
+      "post": "p_15, p_16"
+    },
+    "where_is_my_pizza": {
+      "alias": "t_14",
+      "name": "„where is my pizza?“",
+      "tid": "_6-674",
+      "pre": "p_15, p_17, p_12",
+      "post": "p_18"
+    },
+    "calm_customer": {
+      "alias": "t_15",
+      "name": "Calm customer",
+      "tid": "_6-695",
+      "pre": "p_18",
+      "post": "p_17, p_19"
+    },
+    "select_a_pizza": {
+      "alias": "t_16",
+      "name": "Select a pizza",
+      "tid": "_6-74",
+      "pre": "p_0",
+      "post": "p_1"
+    },
+    "a_end": {
+      "alias": "t_17",
+      "name": "End",
+      "tid": "end_t",
+      "pre": "p_21, p_22",
+      "post": "p_20"
+    }
+  }
+}

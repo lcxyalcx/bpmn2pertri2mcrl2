@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="520" viewBox="0 0 1120 520">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="28" y="40" font-family="Helvetica" font-size="24" font-weight="700" fill="#0f172a">Local semantic converter vs bpmn2petrinet.com</text>
+  <text x="28" y="66" font-family="Helvetica" font-size="13" fill="#475569">Both start from the same official Pizza BPMN downloaded on 2026-05-18.</text>
+  <rect x="28" y="98" width="500" height="170" rx="12" fill="#eff6ff" stroke="#60a5fa"/>
+  <text x="52" y="128" font-family="Helvetica" font-size="17" font-weight="700" fill="#1d4ed8">Structure</text>
+  <text x="52" y="156" font-family="Helvetica" font-size="13" fill="#334155">Local PNML: 27 places, 23 transitions, 56 arcs</text>
+  <text x="52" y="180" font-family="Helvetica" font-size="13" fill="#334155">Web PNML: 24 places, 18 transitions, 46 arcs</text>
+  <text x="52" y="204" font-family="Helvetica" font-size="13" fill="#334155">Local bounded LTS: 200 states shown, 199 transitions shown</text>
+  <text x="52" y="228" font-family="Helvetica" font-size="13" fill="#334155">Web bounded LTS: 54 states, 53 transitions</text>
+  <rect x="564" y="98" width="528" height="170" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="588" y="128" font-family="Helvetica" font-size="17" font-weight="700" fill="#0f172a">Semantics</text>
+  <text x="588" y="158" font-family="Helvetica" font-size="13" fill="#334155">order_received reachable</text>
+  <text x="915" y="158" font-family="Helvetica" font-size="13" fill="#16a34a">local=true</text>
+  <text x="995" y="158" font-family="Helvetica" font-size="13" fill="#16a34a">web=true</text>
+  <text x="588" y="182" font-family="Helvetica" font-size="13" fill="#334155">deliver_the_pizza reachable</text>
+  <text x="915" y="182" font-family="Helvetica" font-size="13" fill="#16a34a">local=true</text>
+  <text x="995" y="182" font-family="Helvetica" font-size="13" fill="#16a34a">web=true</text>
+  <text x="588" y="206" font-family="Helvetica" font-size="13" fill="#334155">receive_payment reachable</text>
+  <text x="915" y="206" font-family="Helvetica" font-size="13" fill="#16a34a">local=true</text>
+  <text x="995" y="206" font-family="Helvetica" font-size="13" fill="#dc2626">web=false</text>
+  <text x="588" y="230" font-family="Helvetica" font-size="13" fill="#334155">calm_customer reachable</text>
+  <text x="915" y="230" font-family="Helvetica" font-size="13" fill="#16a34a">local=true</text>
+  <text x="995" y="230" font-family="Helvetica" font-size="13" fill="#dc2626">web=false</text>
+  <text x="588" y="254" font-family="Helvetica" font-size="13" fill="#334155">joined end reachable</text>
+  <text x="915" y="254" font-family="Helvetica" font-size="13" fill="#16a34a">local=true</text>
+  <text x="995" y="254" font-family="Helvetica" font-size="13" fill="#dc2626">web=false</text>
+  <rect x="28" y="294" width="1064" height="190" rx="12" fill="#fff7ed" stroke="#fdba74"/>
+  <text x="52" y="324" font-family="Helvetica" font-size="17" font-weight="700" fill="#9a3412">Key modeling differences</text>
+  <text x="52" y="354" font-family="Helvetica" font-size="13" fill="#334155">1. Local model expands event-based choice into explicit choose_* transitions.</text>
+  <text x="52" y="378" font-family="Helvetica" font-size="13" fill="#334155">2. Web model gives a_60_minutes an empty pre-set, so the timer can fire without waiting for the gateway choice.</text>
+  <text x="52" y="402" font-family="Helvetica" font-size="13" fill="#334155">3. Web model makes pay_the_pizza wait for receipt, while receive_payment also waits for money, creating a circular dependency.</text>
+  <text x="52" y="426" font-family="Helvetica" font-size="13" fill="#334155">4. Local model keeps payment flow consumable and preserves the ask/calm customer loop as reachable behavior.</text>
+  <text x="52" y="450" font-family="Helvetica" font-size="13" fill="#334155">5. Under the same 200-state cap, the web model collapses to 54 states; the local model already explores 200 states and is still richer.</text>
+</svg>

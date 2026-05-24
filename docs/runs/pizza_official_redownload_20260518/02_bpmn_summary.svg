@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="32" y="40" font-family="Helvetica" font-size="24" font-weight="700" fill="#0f172a">BPMN source summary</text>
+  <text x="32" y="66" font-family="Helvetica" font-size="13" fill="#475569">Official Pizza example downloaded from BPMN-R.</text>
+  <rect x="32" y="96" width="836" height="290" rx="14" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="56" y="128" font-family="Helvetica" font-size="16" font-weight="700" fill="#1d4ed8">Source asset</text>
+  <text x="56" y="152" font-family="Helvetica" font-size="13" fill="#334155">pizza_official_source.png</text>
+  <text x="56" y="190" font-family="Helvetica" font-size="14" fill="#0f172a">Processes</text>
+  <text x="300" y="190" font-family="Helvetica" font-size="14" fill="#334155">2</text>
+  <text x="56" y="218" font-family="Helvetica" font-size="14" fill="#0f172a">Flow nodes</text>
+  <text x="300" y="218" font-family="Helvetica" font-size="14" fill="#334155">18</text>
+  <text x="56" y="246" font-family="Helvetica" font-size="14" fill="#0f172a">Sequence flows</text>
+  <text x="300" y="246" font-family="Helvetica" font-size="14" fill="#334155">18</text>
+  <text x="56" y="274" font-family="Helvetica" font-size="14" fill="#0f172a">Message flows</text>
+  <text x="300" y="274" font-family="Helvetica" font-size="14" fill="#334155">6</text>
+  <text x="56" y="302" font-family="Helvetica" font-size="14" fill="#0f172a">Tasks</text>
+  <text x="300" y="302" font-family="Helvetica" font-size="14" fill="#334155">9</text>
+  <text x="56" y="330" font-family="Helvetica" font-size="14" fill="#0f172a">Parallel gateways</text>
+  <text x="300" y="330" font-family="Helvetica" font-size="14" fill="#334155">1</text>
+  <text x="56" y="358" font-family="Helvetica" font-size="14" fill="#0f172a">Event-based gateways</text>
+  <text x="300" y="358" font-family="Helvetica" font-size="14" fill="#334155">1</text>
+  <text x="56" y="386" font-family="Helvetica" font-size="14" fill="#0f172a">Catch events</text>
+  <text x="300" y="386" font-family="Helvetica" font-size="14" fill="#334155">3</text>
+  <text x="480" y="128" font-family="Helvetica" font-size="16" font-weight="700" fill="#1d4ed8">Why this matters</text>
+  <text x="480" y="156" font-family="Helvetica" font-size="13" fill="#334155">This is the collaboration-level BPMN with two participants, message flows, timers,</text>
+  <text x="480" y="176" font-family="Helvetica" font-size="13" fill="#334155">event-based choice, and the ask/calm customer loop that makes Pizza interesting.</text>
+</svg>
