@@ -58,7 +58,7 @@ class TestVerificationWorkflow(unittest.TestCase):
             pnml_path.write_text(MINIMAL_PNML, encoding="utf-8")
             formula_path.write_text("[true*]<true>true\n", encoding="utf-8")
 
-            def fake_require_tool(name: str) -> str:
+            def fake_resolve_tool(name: str) -> str:
                 return name
 
             def fake_run(cmd: list[str], timeout: int = 120, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -70,7 +70,7 @@ class TestVerificationWorkflow(unittest.TestCase):
                     pathlib.Path(cmd[-1]).write_text("lts", encoding="utf-8")
                     return subprocess.CompletedProcess(cmd, 0, "", "")
                 if tool == "ltsconvert":
-                    target = pathlib.Path(cmd[2])
+                    target = pathlib.Path(cmd[-1])
                     if target.suffix == ".aut":
                         target.write_text('des (0,1,2)\n(0,"fire",1)\n', encoding="utf-8")
                     else:
@@ -83,14 +83,14 @@ class TestVerificationWorkflow(unittest.TestCase):
                         "Number of states: 2\nNumber of transitions: 1\nLTS is deterministic: yes\n",
                         "",
                     )
-                if tool == "lps2pbes":
-                    pathlib.Path(cmd[3]).write_text("pbes", encoding="utf-8")
+                if tool in {"lps2pbes", "lts2pbes"}:
+                    pathlib.Path(cmd[-1]).write_text("pbes", encoding="utf-8")
                     return subprocess.CompletedProcess(cmd, 0, "", "")
                 if tool == "pbes2bool":
                     return subprocess.CompletedProcess(cmd, 0, "true\n", "")
                 raise AssertionError(f"Unexpected command: {cmd}")
 
-            with mock.patch("scripts.verify_workflow.require_tool", side_effect=fake_require_tool):
+            with mock.patch("scripts.verify_workflow.resolve_tool", side_effect=fake_resolve_tool):
                 with mock.patch("scripts.verify_workflow.run", side_effect=fake_run):
                     summary = run_verification(
                         pnml_path,

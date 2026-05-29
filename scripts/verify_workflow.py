@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
-import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -20,6 +19,7 @@ from pnml2mcrl2 import convert_file as convert_pnml_to_mcrl2  # noqa: E402
 from scripts.verification_utils import (  # noqa: E402
     parse_bool_result,
     parse_ltsinfo,
+    resolve_tool,
     write_lts_svg,
 )
 
@@ -29,6 +29,7 @@ class FormulaResult:
     formula: pathlib.Path
     pbes: pathlib.Path
     result: bool
+    backend: str
     solver_output: str
 
 
@@ -47,16 +48,10 @@ def run(
         timeout=timeout,
     )
 
-
-def require_tool(name: str) -> str:
-    path = shutil.which(name)
-    if path is None:
-        raise RuntimeError(f"Required tool not found on PATH: {name}")
-    return path
-
-
 def relative_path(path: pathlib.Path) -> str:
-    return str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+    if path.is_relative_to(ROOT):
+        return path.relative_to(ROOT).as_posix()
+    return str(path).replace("\\", "/")
 
 
 def collect_formula_paths(
@@ -117,38 +112,68 @@ def prepare_model(
 
 def solve_formulas(
     lps_path: pathlib.Path,
+    lts_path: pathlib.Path,
     output_dir: pathlib.Path,
     formula_paths: list[pathlib.Path],
     timeout: int,
+    backend: str = "auto",
 ) -> list[FormulaResult]:
     results: list[FormulaResult] = []
     if not formula_paths:
         return results
 
-    require_tool("lps2pbes")
-    require_tool("pbes2bool")
+    lps2pbes = resolve_tool("lps2pbes")
+    lts2pbes = resolve_tool("lts2pbes")
+    pbes2bool = resolve_tool("pbes2bool")
 
     for formula in formula_paths:
-        pbes_path = output_dir / f"{formula.stem}.pbes"
-        run(
-            [
-                "lps2pbes",
-                f"--formula={formula}",
-                str(lps_path),
-                str(pbes_path),
-            ],
-            timeout=timeout,
-        )
-        solved = run(["pbes2bool", str(pbes_path)], timeout=timeout)
-        solver_output = solved.stdout + solved.stderr
-        results.append(
-            FormulaResult(
-                formula=formula,
-                pbes=pbes_path,
-                result=parse_bool_result(solver_output),
-                solver_output=solver_output.strip(),
+        backends = [backend] if backend in {"lps", "lts"} else ["lps", "lts"]
+        errors: list[str] = []
+        for current_backend in backends:
+            pbes_path = output_dir / f"{formula.stem}_{current_backend}.pbes"
+            try:
+                if current_backend == "lps":
+                    run(
+                        [
+                            lps2pbes,
+                            "--structured",
+                            "--preprocess-modal-operators",
+                            f"--formula={formula}",
+                            str(lps_path),
+                            str(pbes_path),
+                        ],
+                        timeout=timeout,
+                    )
+                else:
+                    run(
+                        [
+                            lts2pbes,
+                            "--preprocess-modal-operators",
+                            f"--formula={formula}",
+                            f"--lps={lps_path}",
+                            str(lts_path),
+                            str(pbes_path),
+                        ],
+                        timeout=timeout,
+                    )
+                solved = run([pbes2bool, str(pbes_path)], timeout=timeout)
+                solver_output = solved.stdout + solved.stderr
+                results.append(
+                    FormulaResult(
+                        formula=formula,
+                        pbes=pbes_path,
+                        result=parse_bool_result(solver_output),
+                        backend=current_backend,
+                        solver_output=solver_output.strip(),
+                    )
+                )
+                break
+            except Exception as exc:  # noqa: BLE001
+                errors.append(f"{current_backend}: {exc}")
+        else:
+            raise RuntimeError(
+                f"Failed to solve formula {formula} using backends {backends}: {'; '.join(errors)}"
             )
-        )
     return results
 
 
@@ -172,7 +197,7 @@ def write_summary_svg(results: list[FormulaResult], svg_path: pathlib.Path, titl
             [
                 f'<rect x="32" y="{y}" width="916" height="50" rx="8" fill="{fill}" stroke="{stroke}"/>',
                 f'<text x="52" y="{y + 22}" font-family="Helvetica" font-size="15" font-weight="700">{item.formula.name}</text>',
-                f'<text x="52" y="{y + 40}" font-family="Helvetica" font-size="13" fill="#334155">result={str(item.result).lower()} · pbes={item.pbes.name}</text>',
+                f'<text x="52" y="{y + 40}" font-family="Helvetica" font-size="13" fill="#334155">result={str(item.result).lower()} · backend={item.backend} · pbes={item.pbes.name}</text>',
             ]
         )
         y += row_height
@@ -202,11 +227,11 @@ def write_report(summary: dict[str, object], output_dir: pathlib.Path) -> None:
 
     lines.extend(["", "## Modal Formulas", ""])
     if summary["properties"]:
-        lines.append("| Formula | Result | PBES |")
-        lines.append("| --- | --- | --- |")
+        lines.append("| Formula | Result | Backend | PBES |")
+        lines.append("| --- | --- | --- | --- |")
         for item in summary["properties"]:
             lines.append(
-                f"| `{pathlib.Path(item['formula']).name}` | {str(item['result']).lower()} | `{item['pbes']}` |"
+                f"| `{pathlib.Path(item['formula']).name}` | {str(item['result']).lower()} | `{item['backend']}` | `{item['pbes']}` |"
             )
     else:
         lines.append("No `.mcf` files were provided.")
@@ -221,9 +246,12 @@ def run_verification(
     max_place_tokens: int | None = None,
     max_lts_states: int = 200,
     timeout: int = 120,
+    formula_backend: str = "auto",
 ) -> dict[str, object]:
-    for tool in ["mcrl22lps", "lps2lts", "ltsconvert", "ltsinfo"]:
-        require_tool(tool)
+    mcrl22lps = resolve_tool("mcrl22lps")
+    lps2lts = resolve_tool("lps2lts")
+    ltsconvert = resolve_tool("ltsconvert")
+    ltsinfo = resolve_tool("ltsinfo")
 
     output_dir.mkdir(parents=True, exist_ok=True)
     model = prepare_model(input_path, output_dir, max_place_tokens)
@@ -236,15 +264,22 @@ def run_verification(
     dot_path = output_dir / f"{base_name}.dot"
     lts_svg_path = output_dir / f"{base_name}_lts.svg"
 
-    run(["mcrl22lps", str(mcrl2_path), str(lps_path)], timeout=timeout)
-    run(["lps2lts", f"--max={max_lts_states}", str(lps_path), str(lts_path)], timeout=timeout)
-    run(["ltsconvert", str(lts_path), str(aut_path)], timeout=timeout)
-    run(["ltsconvert", str(lts_path), str(dot_path)], timeout=timeout)
-    lts_info_result = run(["ltsinfo", str(lts_path)], timeout=timeout)
+    run([mcrl22lps, str(mcrl2_path), str(lps_path)], timeout=timeout)
+    run([lps2lts, f"--max={max_lts_states}", str(lps_path), str(lts_path)], timeout=timeout)
+    run([ltsconvert, "--out=aut", str(lts_path), str(aut_path)], timeout=timeout)
+    run([ltsconvert, "--out=dot", str(lts_path), str(dot_path)], timeout=timeout)
+    lts_info_result = run([ltsinfo, str(lts_path)], timeout=timeout)
     lts_info = parse_ltsinfo(lts_info_result.stdout + lts_info_result.stderr)
     write_lts_svg(aut_path, lts_svg_path, max_states=max_lts_states)
 
-    formula_results = solve_formulas(lps_path, output_dir, formula_paths, timeout=timeout)
+    formula_results = solve_formulas(
+        lps_path,
+        lts_path,
+        output_dir,
+        formula_paths,
+        timeout=timeout,
+        backend=formula_backend,
+    )
     summary_svg_path = output_dir / f"{base_name}_verification_summary.svg"
     write_summary_svg(formula_results, summary_svg_path, f"Verification Summary: {base_name}")
 
@@ -268,6 +303,7 @@ def run_verification(
                 "formula": relative_path(item.formula),
                 "pbes": relative_path(item.pbes),
                 "result": item.result,
+                "backend": item.backend,
                 "solver_output": item.solver_output,
             }
             for item in formula_results
@@ -313,6 +349,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--max-lts-states", type=int, default=200)
     parser.add_argument("--timeout", type=int, default=120)
+    parser.add_argument(
+        "--formula-backend",
+        choices=["auto", "lps", "lts"],
+        default="auto",
+        help="Backend for modal formula solving",
+    )
     return parser
 
 
@@ -328,6 +370,7 @@ def main() -> None:
         max_place_tokens=args.max_place_tokens,
         max_lts_states=args.max_lts_states,
         timeout=args.timeout,
+        formula_backend=args.formula_backend,
     )
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 

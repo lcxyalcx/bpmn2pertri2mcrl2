@@ -25,6 +25,7 @@ from bpmn2pnml_local import (  # noqa: E402
     parse_bpmn,
 )
 from pnml2mcrl2 import convert_file as convert_pnml_to_mcrl2, parse_pnml  # noqa: E402
+from scripts.verification_utils import resolve_tool  # noqa: E402
 
 SUPPORTED_FLOWS = {"sequenceFlow", "messageFlow"}
 
@@ -191,8 +192,9 @@ def _validate_pnml(net, blocking: list[str], warnings: list[str]) -> None:
 
 
 def _run_mcrl22lps(mcrl2_path: pathlib.Path, timeout: int) -> tuple[bool, str]:
-    tool = shutil.which("mcrl22lps")
-    if tool is None:
+    try:
+        tool = resolve_tool("mcrl22lps")
+    except RuntimeError:
         return False, "mcrl22lps 未安装"
     with tempfile.TemporaryDirectory() as tmp_dir:
         lps_path = pathlib.Path(tmp_dir) / "model.lps"
@@ -212,7 +214,11 @@ def _run_mcrl22lps(mcrl2_path: pathlib.Path, timeout: int) -> tuple[bool, str]:
 
 
 def analyze_bpmn(bpmn_path: pathlib.Path, timeout: int = 120) -> CompatibilityReport:
-    rel_path = str(bpmn_path.relative_to(ROOT)) if bpmn_path.is_relative_to(ROOT) else str(bpmn_path)
+    rel_path = (
+        bpmn_path.relative_to(ROOT).as_posix()
+        if bpmn_path.is_relative_to(ROOT)
+        else str(bpmn_path).replace("\\", "/")
+    )
     report = CompatibilityReport(bpmn_file=rel_path, compatible=True)
 
     raw_counts = _scan_bpmn_elements(bpmn_path)
@@ -292,7 +298,9 @@ def analyze_bpmn(bpmn_path: pathlib.Path, timeout: int = 120) -> CompatibilityRe
             report.blocking_issues.append(f"PNML -> mCRL2 转换失败: {exc}")
             return report
 
-        if shutil.which("mcrl22lps") is None:
+        try:
+            resolve_tool("mcrl22lps")
+        except RuntimeError:
             report.warnings.append("未检测到 mcrl22lps，跳过 mCRL2 语法验证")
             report.mcrl2_syntax_ok = None
             report.bounded_mcrl2_syntax_ok = None

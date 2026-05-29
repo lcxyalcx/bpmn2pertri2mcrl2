@@ -17,3 +17,8 @@ ENV/
 
 # Logs
 *.log
+
+# Local tooling and generated traces
+.tools/
+docs/verification/pizza_official_real/
+*.trc

@@ -7,7 +7,6 @@ import html
 import json
 import pathlib
 import re
-import shutil
 import subprocess
 import sys
 import textwrap
@@ -28,6 +27,7 @@ from bpmn2pnml_local import convert_file as convert_bpmn_to_pnml  # noqa: E402
 from bpmn2pnml_local import parse_bpmn  # noqa: E402
 from pnml2mcrl2 import generate_mcrl2, parse_pnml  # noqa: E402
 from check_pizza_official import parse_aut, parse_ltsinfo, write_lts_svg  # noqa: E402
+from scripts.verification_utils import resolve_tool  # noqa: E402
 
 
 def run(cmd: list[str], cwd: pathlib.Path = ROOT, timeout: int = 240) -> subprocess.CompletedProcess[str]:
@@ -40,14 +40,6 @@ def run(cmd: list[str], cwd: pathlib.Path = ROOT, timeout: int = 240) -> subproc
         check=True,
         timeout=timeout,
     )
-
-
-def require_tool(name: str) -> str:
-    path = shutil.which(name)
-    if path is None:
-        raise RuntimeError(f"Required tool not found on PATH: {name}")
-    return path
-
 
 def download(url: str, output: pathlib.Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -362,8 +354,11 @@ def write_report(
 
 
 def main() -> None:
-    for tool in ["curl", "mcrl22lps", "lps2lts", "ltsconvert", "ltsinfo"]:
-        require_tool(tool)
+    curl = resolve_tool("curl")
+    mcrl22lps = resolve_tool("mcrl22lps")
+    lps2lts = resolve_tool("lps2lts")
+    ltsconvert = resolve_tool("ltsconvert")
+    ltsinfo = resolve_tool("ltsinfo")
 
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     bpmn_path = RUN_DIR / "pizza_official_downloaded.bpmn"
@@ -384,9 +379,9 @@ def main() -> None:
     report_path = RUN_DIR / "README.md"
     summary_json_path = RUN_DIR / "summary.json"
 
-    download(SOURCE_BPMN, bpmn_path)
-    download(SOURCE_BPMN_WITH_COMMENTS, bpmn_comments_path)
-    download(SOURCE_IMAGE, bpmn_png_path)
+    run([curl, "-L", "--fail", "--silent", "--show-error", SOURCE_BPMN, "-o", str(bpmn_path)])
+    run([curl, "-L", "--fail", "--silent", "--show-error", SOURCE_BPMN_WITH_COMMENTS, "-o", str(bpmn_comments_path)])
+    run([curl, "-L", "--fail", "--silent", "--show-error", SOURCE_IMAGE, "-o", str(bpmn_png_path)])
 
     convert_bpmn_to_pnml(bpmn_path, pnml_path)
     net = parse_pnml(pnml_path)
@@ -396,11 +391,11 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    run(["mcrl22lps", str(bounded_mcrl2_path), str(lps_path)])
-    run(["lps2lts", "--cached", "--max=200", str(lps_path), str(lts_path)])
-    run(["ltsconvert", str(lts_path), str(aut_path)])
-    run(["ltsconvert", str(lts_path), str(dot_path)])
-    ltsinfo_result = run(["ltsinfo", str(lts_path)])
+    run([mcrl22lps, str(bounded_mcrl2_path), str(lps_path)])
+    run([lps2lts, "--cached", "--max=200", str(lps_path), str(lts_path)])
+    run([ltsconvert, "--out=aut", str(lts_path), str(aut_path)])
+    run([ltsconvert, "--out=dot", str(lts_path), str(dot_path)])
+    ltsinfo_result = run([ltsinfo, str(lts_path)])
     ltsinfo_output = ltsinfo_result.stdout + "\n" + ltsinfo_result.stderr
     write_lts_svg(aut_path, lts_svg_path)
 

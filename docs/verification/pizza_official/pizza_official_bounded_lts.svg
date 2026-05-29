@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2040" height="3378" viewBox="0 0 2040 3378">
 <defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#64748b"/></marker></defs>
 <rect width="100%" height="100%" fill="#ffffff"/>
-<text x="28" y="34" font-family="Helvetica" font-size="22" font-weight="700">Official Pizza bounded LTS</text>
+<text x="28" y="34" font-family="Helvetica" font-size="22" font-weight="700">Bounded LTS</text>
 <text x="28" y="58" font-family="Helvetica" font-size="13" fill="#475569">Showing 120 of 200 states and transitions between shown states.</text>
 <line x1="90" y1="1650" x2="238" y2="1650" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arrow)"/>
 <text x="165" y="1645" font-family="Helvetica" font-size="10" fill="#334155">hungry_for_pizza</text>

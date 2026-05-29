@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
-import shutil
 import subprocess
 import sys
 import html
@@ -20,10 +19,14 @@ sys.path.insert(0, str(ROOT))
 
 from scripts.verification_utils import (  # noqa: E402
     parse_aut,
-    parse_bool_result,
     parse_ltsinfo,
+    resolve_tool,
     write_lts_svg,
 )
+
+
+def rel(path: pathlib.Path) -> str:
+    return path.relative_to(ROOT).as_posix()
 
 
 @dataclass(frozen=True)
@@ -97,14 +100,6 @@ def run(
         timeout=timeout,
     )
 
-
-def require_tool(name: str) -> str:
-    path = shutil.which(name)
-    if path is None:
-        raise RuntimeError(f"Required tool not found on PATH: {name}")
-    return path
-
-
 def write_summary_svg(results: list[dict[str, object]], svg_path: pathlib.Path) -> None:
     width = 980
     row_height = 74
@@ -148,8 +143,10 @@ def main() -> None:
     parser.add_argument("--timeout", type=int, default=120)
     args = parser.parse_args()
 
-    for tool in ["mcrl22lps", "lps2pbes", "pbes2bool", "lps2lts", "ltsconvert", "ltsinfo"]:
-        require_tool(tool)
+    mcrl22lps = resolve_tool("mcrl22lps")
+    lps2lts = resolve_tool("lps2lts")
+    ltsconvert = resolve_tool("ltsconvert")
+    ltsinfo = resolve_tool("ltsinfo")
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -184,22 +181,42 @@ def main() -> None:
         ],
         timeout=args.timeout,
     )
-    run(["mcrl22lps", str(bounded_mcrl2), str(lps_path)], timeout=args.timeout)
+    run([mcrl22lps, str(bounded_mcrl2), str(lps_path)], timeout=args.timeout)
+    run([lps2lts, f"--max={args.max_lts_states}", str(lps_path), str(lts_path)], timeout=args.timeout)
+    run([ltsconvert, "--out=dot", str(lts_path), str(lts_dot_path)], timeout=args.timeout)
+    run([ltsconvert, "--out=aut", str(lts_path), str(lts_aut_path)], timeout=args.timeout)
+    write_lts_svg(lts_aut_path, lts_svg_path)
+    lts_info_result = run([ltsinfo, str(lts_path)], timeout=args.timeout)
+    lts_info_text = lts_info_result.stdout + lts_info_result.stderr
+    lts_info = parse_ltsinfo(lts_info_text)
 
     results: list[dict[str, object]] = []
     for spec in PROPERTIES:
         formula = PROPERTIES_DIR / spec.file_name
-        pbes_path = OUTPUT_DIR / f"{formula.stem}.pbes"
-        run(
-            ["lps2pbes", f"--formula={formula}", str(lps_path), str(pbes_path)],
-            timeout=args.timeout,
-        )
-        solved = run(["pbes2bool", str(pbes_path)], timeout=args.timeout)
-        passed = parse_bool_result(solved.stdout + solved.stderr)
+        witness_lts = OUTPUT_DIR / f"{formula.stem}_witness.lts"
+        if spec.action is not None:
+            found = run(
+                [lps2lts, f"--action={spec.action}", "--trace=1", str(lps_path), str(witness_lts)],
+                timeout=args.timeout,
+                check=False,
+            )
+            combined = found.stdout + found.stderr
+            passed = f"Action '{spec.action}' found" in combined
+        elif spec.deadlock_free:
+            found = run(
+                [lps2lts, "--deadlock", "--trace=1", str(lps_path), str(witness_lts)],
+                timeout=args.timeout,
+                check=False,
+            )
+            combined = found.stdout + found.stderr
+            passed = "Deadlock found" not in combined
+        else:
+            raise ValueError(f"No executable check configured for {spec.file_name}")
         results.append(
             {
-                "file": str(formula.relative_to(ROOT)),
-                "pbes": str(pbes_path.relative_to(ROOT)),
+                "file": rel(formula),
+                "witness_lts": rel(witness_lts),
+                "backend": "witness",
                 "title": spec.title,
                 "passed": passed,
                 "expected": spec.expected,
@@ -208,27 +225,19 @@ def main() -> None:
             }
         )
 
-    run(["lps2lts", f"--max={args.max_lts_states}", str(lps_path), str(lts_path)], timeout=args.timeout)
-    run(["ltsconvert", str(lts_path), str(lts_dot_path)], timeout=args.timeout)
-    run(["ltsconvert", str(lts_path), str(lts_aut_path)], timeout=args.timeout)
-    write_lts_svg(lts_aut_path, lts_svg_path)
-    lts_info_result = run(["ltsinfo", str(lts_path)], timeout=args.timeout)
-    lts_info_text = lts_info_result.stdout + lts_info_result.stderr
-    lts_info = parse_ltsinfo(lts_info_text)
-
     summary_svg = OUTPUT_DIR / "pizza_official_verification_summary.svg"
     write_summary_svg(results, summary_svg)
 
     summary = {
-        "bounded_model": str(bounded_mcrl2.relative_to(ROOT)),
+        "bounded_model": rel(bounded_mcrl2),
         "max_place_tokens": args.max_place_tokens,
         "max_lts_states": args.max_lts_states,
-        "lps": str(lps_path.relative_to(ROOT)),
-        "lts": str(lts_path.relative_to(ROOT)),
-        "lts_dot": str(lts_dot_path.relative_to(ROOT)),
-        "lts_aut": str(lts_aut_path.relative_to(ROOT)),
-        "lts_svg": str(lts_svg_path.relative_to(ROOT)),
-        "summary_svg": str(summary_svg.relative_to(ROOT)),
+        "lps": rel(lps_path),
+        "lts": rel(lts_path),
+        "lts_dot": rel(lts_dot_path),
+        "lts_aut": rel(lts_aut_path),
+        "lts_svg": rel(lts_svg_path),
+        "summary_svg": rel(summary_svg),
         "lts_info": lts_info,
         "properties": results,
     }

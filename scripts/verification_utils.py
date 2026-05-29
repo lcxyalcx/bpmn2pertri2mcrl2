@@ -4,9 +4,57 @@
 from __future__ import annotations
 
 import html
+import os
 import pathlib
 import re
+import shutil
 from collections import defaultdict, deque
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+
+
+def _tool_name_candidates(name: str) -> list[str]:
+    if os.name == "nt" and not name.lower().endswith(".exe"):
+        return [f"{name}.exe", name]
+    return [name]
+
+
+def _bundled_bin_dirs() -> list[pathlib.Path]:
+    candidates: list[pathlib.Path] = []
+    env_bin = os.environ.get("MCRL2_BIN")
+    if env_bin:
+        path = pathlib.Path(env_bin)
+        if path.is_dir():
+            candidates.append(path)
+
+    tools_dir = ROOT / ".tools"
+    if tools_dir.is_dir():
+        for release_dir in sorted(tools_dir.glob("mcrl2-*"), reverse=True):
+            candidates.extend(sorted(release_dir.rglob("bin"), reverse=True))
+
+    unique: list[pathlib.Path] = []
+    seen: set[pathlib.Path] = set()
+    for path in candidates:
+        resolved = path.resolve()
+        if resolved in seen or not resolved.is_dir():
+            continue
+        seen.add(resolved)
+        unique.append(resolved)
+    return unique
+
+
+def resolve_tool(name: str) -> str:
+    direct = shutil.which(name)
+    if direct is not None:
+        return direct
+
+    for bin_dir in _bundled_bin_dirs():
+        for candidate in _tool_name_candidates(name):
+            path = bin_dir / candidate
+            if path.is_file():
+                return str(path)
+
+    raise RuntimeError(f"Required tool not found on PATH or in bundled .tools: {name}")
 
 
 def parse_aut(path: pathlib.Path) -> tuple[int, int, list[tuple[int, str, int]]]:

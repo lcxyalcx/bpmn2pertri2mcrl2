@@ -120,7 +120,7 @@ flowchart TB
 
 ### 3.3 第三层：语义验证与对照实验
 
-- **官方 Pizza 性质验证**：`scripts/check_pizza_official.py`，6 项 modal formula / PBES 检查
+- **官方 Pizza 性质验证**：`scripts/check_pizza_official.py`，6 项 reachability / deadlock 检查
 - **本地 vs 网页对照**：`scripts/compare_pizza_local_vs_web.py`，同一 BPMN 输入下比较结构规模与关键动作可达性
 
 ---

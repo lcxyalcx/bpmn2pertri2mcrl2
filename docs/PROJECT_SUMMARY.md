@@ -195,7 +195,7 @@ Number of action labels: 18
 LTS is deterministic: yes
 ```
 
-当前 modal formula / PBES 检查结果：
+当前官方 Pizza 检查结果：
 
 | 性质 | 结果 | 说明 |
 | --- | --- | --- |
