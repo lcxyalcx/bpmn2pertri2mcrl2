@@ -163,8 +163,8 @@ def _check_flow_references(model, blocking: list[str], warnings: list[str]) -> N
             )
 
     for node_id, node in model.nodes.items():
-        incoming_seq = [f for f in model.sequence_flows.values() if f.target == node_id]
-        outgoing_seq = [f for f in model.sequence_flows.values() if f.source == node_id]
+        incoming_seq = model.incoming_sequence_flows.get(node_id, [])
+        outgoing_seq = model.outgoing_sequence_flows.get(node_id, [])
         if node.tag not in {"startEvent", "endEvent"} and not incoming_seq and not outgoing_seq:
             warnings.append(f"节点 {node_id} ({node.tag}) 没有 sequence flow 连接")
 

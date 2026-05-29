@@ -85,6 +85,36 @@ class TestConverter(unittest.TestCase):
         self.assertIn("% Max place tokens: 1", content)
         self.assertIn("(m(p_2) < 1) -> a_60_minutes", content)
 
+    def test_large_pnml_generation_uses_sparse_iterative_updates(self):
+        from pnml2mcrl2 import Arc, Net, Place, Transition, generate_mcrl2
+
+        place_count = 1200
+        places = {
+            f"p{i:04d}": Place(
+                pid=f"p{i:04d}",
+                name=f"Place {i}",
+                tokens=1 if i == 0 else 0,
+            )
+            for i in range(place_count)
+        }
+        transitions = {"t0": Transition(tid="t0", name="Step")}
+        arcs = [
+            Arc(source="p0000", target="t0"),
+            Arc(source="t0", target="p0001"),
+        ]
+        net = Net(places=places, transitions=transitions, arcs=arcs)
+
+        content = generate_mcrl2(net)
+        update_line = next(
+            line.strip()
+            for line in content.splitlines()
+            if line.strip().startswith("update_t_0(m) =")
+        )
+
+        self.assertEqual(update_line.count("if(p =="), 2)
+        self.assertIn("m(p_0) - 1", update_line)
+        self.assertIn("m(p_1) + 1", update_line)
+
     def test_compatibility_checker_accepts_supported_bpmn(self):
         import sys
 

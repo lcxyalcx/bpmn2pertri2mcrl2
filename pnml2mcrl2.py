@@ -230,29 +230,25 @@ def _update_expression(
     pre_places: list[str],
     post_places: list[str],
 ) -> str:
-    updates = {pid: 0 for pid in place_map}
+    updates: dict[str, int] = {}
     for pid in pre_places:
-        updates[pid] -= 1
+        updates[pid] = updates.get(pid, 0) - 1
     for pid in post_places:
-        updates[pid] += 1
+        updates[pid] = updates.get(pid, 0) + 1
 
-    def build_case(items: list[str]) -> str:
-        if not items:
-            return "m(p)"
-        pid = items[0]
+    # Only touched places need explicit branches; every other place stays m(p).
+    changed_places = [pid for pid, delta in updates.items() if delta != 0]
+    expression = "m(p)"
+    for pid in reversed(changed_places):
         delta = updates[pid]
         target = place_map[pid]
         if delta > 0:
-            expr = f"m({target}) + {delta}"
-        elif delta < 0:
-            expr = f"m({target}) - {abs(delta)}"
+            updated = f"m({target}) + {delta}"
         else:
-            expr = f"m({target})"
-        rest = build_case(items[1:])
-        return f"if(p == {target}, {expr}, {rest})"
+            updated = f"m({target}) - {abs(delta)}"
+        expression = f"if(p == {target}, {updated}, {expression})"
 
-    ordered_places = list(place_map.keys())
-    return f"lambda p: Place . {build_case(ordered_places)}"
+    return f"lambda p: Place . {expression}"
 
 
 def generate_mcrl2(

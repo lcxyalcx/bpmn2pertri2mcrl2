@@ -51,6 +51,10 @@ class BpmnModel:
     message_flows: dict[str, Flow]
     containers: dict[str, ContainerInfo]
     warnings: list[str]
+    incoming_sequence_flows: dict[str, list[Flow]] = dataclasses.field(default_factory=dict)
+    outgoing_sequence_flows: dict[str, list[Flow]] = dataclasses.field(default_factory=dict)
+    incoming_message_flows: dict[str, list[Flow]] = dataclasses.field(default_factory=dict)
+    outgoing_message_flows: dict[str, list[Flow]] = dataclasses.field(default_factory=dict)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -297,6 +301,15 @@ def _rewrite_container_flows(
     return rewritten
 
 
+def _index_flows(flows: dict[str, Flow]) -> tuple[dict[str, list[Flow]], dict[str, list[Flow]]]:
+    incoming: dict[str, list[Flow]] = {}
+    outgoing: dict[str, list[Flow]] = {}
+    for flow in flows.values():
+        incoming.setdefault(flow.target, []).append(flow)
+        outgoing.setdefault(flow.source, []).append(flow)
+    return incoming, outgoing
+
+
 def parse_bpmn(path: pathlib.Path) -> BpmnModel:
     root = ET.fromstring(_read_xml_text(path))
     nodes: dict[str, BpmnNode] = {}
@@ -329,8 +342,21 @@ def parse_bpmn(path: pathlib.Path) -> BpmnModel:
                 source=source,
                 target=target,
             )
+    incoming_sequence_flows, outgoing_sequence_flows = _index_flows(sequence_flows)
+    incoming_message_flows, outgoing_message_flows = _index_flows(message_flows)
 
-    return BpmnModel(nodes, process_ids, sequence_flows, message_flows, containers, warnings)
+    return BpmnModel(
+        nodes=nodes,
+        process_ids=process_ids,
+        sequence_flows=sequence_flows,
+        message_flows=message_flows,
+        containers=containers,
+        warnings=warnings,
+        incoming_sequence_flows=incoming_sequence_flows,
+        outgoing_sequence_flows=outgoing_sequence_flows,
+        incoming_message_flows=incoming_message_flows,
+        outgoing_message_flows=outgoing_message_flows,
+    )
 
 
 def _message_flow_gates_target(flow: Flow, model: BpmnModel) -> bool:
@@ -352,20 +378,12 @@ def _is_message_producer(node: BpmnNode) -> bool:
 
 def _outgoing_message_places(
     node: BpmnNode,
-    gating_messages: dict[str, Flow],
-    all_message_flows: dict[str, Flow],
+    gating_message_outgoing: dict[str, list[Flow]],
+    all_message_outgoing: dict[str, list[Flow]],
 ) -> list[Flow]:
     if _is_message_producer(node):
-        return _outgoing_flows(all_message_flows, node.nid)
-    return _outgoing_flows(gating_messages, node.nid)
-
-
-def _incoming_flows(flows: dict[str, Flow], node_id: str) -> list[Flow]:
-    return [flow for flow in flows.values() if flow.target == node_id]
-
-
-def _outgoing_flows(flows: dict[str, Flow], node_id: str) -> list[Flow]:
-    return [flow for flow in flows.values() if flow.source == node_id]
+        return all_message_outgoing.get(node.nid, [])
+    return gating_message_outgoing.get(node.nid, [])
 
 
 def _add_arc(net: PetriNet, source: str, target: str) -> None:
@@ -464,10 +482,14 @@ def _activity_transition(
     incoming_seq: list[Flow],
     outgoing_seq: list[Flow],
     incoming_msg: list[Flow],
-    gating_messages: dict[str, Flow],
-    all_message_flows: dict[str, Flow],
+    gating_message_outgoing: dict[str, list[Flow]],
+    all_message_outgoing: dict[str, list[Flow]],
 ) -> None:
-    outgoing_msg = _outgoing_message_places(node, gating_messages, all_message_flows)
+    outgoing_msg = _outgoing_message_places(
+        node,
+        gating_message_outgoing,
+        all_message_outgoing,
+    )
     pre = [
         *[flow.fid for flow in incoming_seq],
         *[flow.fid for flow in incoming_msg],
@@ -486,6 +508,7 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
         for fid, flow in model.message_flows.items()
         if _message_flow_gates_target(flow, model)
     }
+    gating_message_incoming, gating_message_outgoing = _index_flows(gating_messages)
 
     for flow in model.sequence_flows.values():
         net.places[flow.fid] = Place(flow.fid, flow.name, 0)
@@ -508,15 +531,19 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
         )
 
     for node in model.nodes.values():
-        if node.tag == "startEvent" and not _incoming_flows(gating_messages, node.nid):
+        if node.tag == "startEvent" and not gating_message_incoming.get(node.nid, []):
             start_id = f"start_p_{_safe_id(node.process_id or 'process')}"
             net.places[start_id] = dataclasses.replace(net.places[start_id], tokens=1)
 
     for node in model.nodes.values():
-        incoming_seq = _incoming_flows(model.sequence_flows, node.nid)
-        outgoing_seq = _outgoing_flows(model.sequence_flows, node.nid)
-        incoming_msg = _incoming_flows(gating_messages, node.nid)
-        outgoing_msg = _outgoing_message_places(node, gating_messages, model.message_flows)
+        incoming_seq = model.incoming_sequence_flows.get(node.nid, [])
+        outgoing_seq = model.outgoing_sequence_flows.get(node.nid, [])
+        incoming_msg = gating_message_incoming.get(node.nid, [])
+        outgoing_msg = _outgoing_message_places(
+            node,
+            gating_message_outgoing,
+            model.outgoing_message_flows,
+        )
 
         if node.tag == "startEvent":
             pre = [flow.fid for flow in incoming_msg]
@@ -572,7 +599,7 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
         elif node.tag == "boundaryEvent":
             attached_id = node.attached_to
             attached_incoming = (
-                _incoming_flows(model.sequence_flows, attached_id) if attached_id else []
+                model.incoming_sequence_flows.get(attached_id, []) if attached_id else []
             )
             pre_places = [flow.fid for flow in attached_incoming]
             message_inputs = [flow.fid for flow in incoming_msg]
@@ -605,8 +632,8 @@ def convert_bpmn_to_pn(model: BpmnModel) -> PetriNet:
                 incoming_seq,
                 outgoing_seq,
                 incoming_msg,
-                gating_messages,
-                model.message_flows,
+                gating_message_outgoing,
+                model.outgoing_message_flows,
             )
 
     process_end_places = [f"end_p_{_safe_id(pid)}" for pid in model.process_ids]
