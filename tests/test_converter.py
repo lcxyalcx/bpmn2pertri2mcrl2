@@ -1,7 +1,10 @@
 import pathlib
+import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from bpmn2pnml_local import convert_file as convert_bpmn_to_pnml
 from pnml2mcrl2 import convert_file

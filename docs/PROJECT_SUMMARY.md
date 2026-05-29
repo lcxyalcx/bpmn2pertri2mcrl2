@@ -195,7 +195,7 @@ Number of action labels: 18
 LTS is deterministic: yes
 ```
 
-当前 modal/action witness 检查结果：
+当前 modal formula / PBES 检查结果：
 
 | 性质 | 结果 | 说明 |
 | --- | --- | --- |
@@ -302,10 +302,10 @@ data object / data association
 建议下一步工作：
 
 1. 建立更多官方 BPMN 基准样例的兼容性测试集。
-2. 将 modal formula 检查从 action witness 扩展为更严格的 PBES 性质验证。
+2. 为更多 BPMN 基准样例补充可复用的 `.mcf` 性质库。
 3. 支持多实例语义与嵌套子流程层次保留（可选）。
 4. 增加 Petri net 可视化，展示 BPMN 节点到 PNML place/transition 的映射。
-5. 把当前脚本整理成统一 CLI，例如 `python convert.py bpmn --verify --visualize`。
+5. 继续扩展统一验证 CLI，覆盖更多批处理与报告导出场景。
 
 ## 10. 阶段性结论
 

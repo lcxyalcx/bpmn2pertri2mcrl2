@@ -120,7 +120,7 @@ flowchart TB
 
 ### 3.3 第三层：语义验证与对照实验
 
-- **官方 Pizza 性质验证**：`scripts/check_pizza_official.py`，6 项 modal / action witness 检查
+- **官方 Pizza 性质验证**：`scripts/check_pizza_official.py`，6 项 modal formula / PBES 检查
 - **本地 vs 网页对照**：`scripts/compare_pizza_local_vs_web.py`，同一 BPMN 输入下比较结构规模与关键动作可达性
 
 ---
@@ -351,12 +351,12 @@ python -m unittest discover -s tests -v
 1. **新 BPMN 接入前**，必须先运行 `check_bpmn_compatibility.py` 预检。
 2. **含 message flow、各类网关、子流程的协作流程**，优先使用本地链路。
 3. **含编排元素或多实例语义** 的模型，需知悉当前近似策略或手工改写。
-4. **验证阶段**建议使用 bounded 模型（`max_place_tokens=1`）配合 action witness。
+4. **验证阶段**建议使用 bounded 模型（`max_place_tokens=1`）配合 PBES 求解与 LTS 可视化。
 
 ### 10.3 后续改进方向
 
 1. 建立更多官方 BPMN 基准样例的兼容性测试集。
-2. 将 modal formula 检查从 action witness 扩展为完整 PBES 验证。
+2. 为更多 BPMN 基准样例补充可复用的 `.mcf` 性质库。
 3. 支持嵌套子流程层次保留（可选）与多实例语义。
 4. 增加 Petri net 可视化，展示 BPMN 节点到 PNML 的映射。
 

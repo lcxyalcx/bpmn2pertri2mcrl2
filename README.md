@@ -150,6 +150,19 @@ python -m unittest discover -s tests -v
 
 ### 6) 运行 modal formula / LTS 检查
 
+通用验证入口：
+
+```bash
+python scripts/verify_workflow.py examples/pizza_official.bpmn --max-place-tokens 1 --formula-dir properties/pizza_official
+```
+
+该脚本支持输入 `.bpmn`、`.pnml` 或 `.mcrl2`，会统一生成：
+
+- `mCRL2 -> LPS -> LTS -> AUT / DOT / SVG`
+- 若提供 `.mcf`，则进一步执行 `lps2pbes + pbes2bool` 做真实 PBES 性质求解
+
+官方 Pizza 预置脚本：
+
 ```bash
 python scripts/check_pizza_official.py
 ```
@@ -275,6 +288,8 @@ $$
 | `bpmn2mcrl2_web.py` | BPMN → PNML → mCRL2（bpmn2petrinet.com 网页自动化） |
 | `scripts/check_bpmn_compatibility.py` | BPMN 兼容性扫描 |
 | `scripts/check_pizza_official.py` | 官方 Pizza modal formula / LTS 验证 |
+| `scripts/verify_workflow.py` | 通用 BPMN / PNML / mCRL2 验证与 LTS 可视化 |
+| `scripts/verification_utils.py` | 验证与 LTS SVG 共用工具函数 |
 | `scripts/compare_pizza_local_vs_web.py` | 本地 vs 网页转换对照 |
 | `scripts/rerun_pizza_official_pipeline.py` | 重跑官方 Pizza 完整流水线 |
 | `examples/pizza_official.bpmn` | 官方 Pizza BPMN 示例 |
