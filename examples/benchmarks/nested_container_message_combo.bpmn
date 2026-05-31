@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_NestedContainerMessageCombo"
+                  targetNamespace="http://example.com/benchmarks/nested-container-message">
+  <bpmn:process id="Process_Orchestrator" isExecutable="false">
+    <bpmn:startEvent id="Orch_Start" name="Orchestrator Start" />
+    <bpmn:subProcess id="Sub_Orch" name="Orchestration Subprocess">
+      <bpmn:startEvent id="Sub_Start" name="Sub Start" />
+      <bpmn:transaction id="Txn_Inner" name="Inner Transaction">
+        <bpmn:startEvent id="Txn_Start" name="Txn Start" />
+        <bpmn:task id="Task_PreparePayload" name="Prepare Payload" />
+        <bpmn:intermediateThrowEvent id="Throw_Dispatch" name="Dispatch Event" />
+        <bpmn:endEvent id="Txn_End" name="Txn End" />
+
+        <bpmn:sequenceFlow id="Flow_Txn_1" sourceRef="Txn_Start" targetRef="Task_PreparePayload" />
+        <bpmn:sequenceFlow id="Flow_Txn_2" sourceRef="Task_PreparePayload" targetRef="Throw_Dispatch" />
+        <bpmn:sequenceFlow id="Flow_Txn_3" sourceRef="Throw_Dispatch" targetRef="Txn_End" />
+      </bpmn:transaction>
+      <bpmn:callActivity id="Call_Finalize" name="Finalize Call" />
+      <bpmn:endEvent id="Sub_End" name="Sub End" />
+
+      <bpmn:sequenceFlow id="Flow_Sub_1" sourceRef="Sub_Start" targetRef="Txn_Inner" />
+      <bpmn:sequenceFlow id="Flow_Sub_2" sourceRef="Txn_Inner" targetRef="Call_Finalize" />
+      <bpmn:sequenceFlow id="Flow_Sub_3" sourceRef="Call_Finalize" targetRef="Sub_End" />
+    </bpmn:subProcess>
+    <bpmn:endEvent id="Orch_End" name="Orchestrator End" />
+
+    <bpmn:sequenceFlow id="Flow_Main_1" sourceRef="Orch_Start" targetRef="Sub_Orch" />
+    <bpmn:sequenceFlow id="Flow_Main_2" sourceRef="Sub_Orch" targetRef="Orch_End" />
+  </bpmn:process>
+
+  <bpmn:process id="Process_Worker" isExecutable="false">
+    <bpmn:startEvent id="Worker_Start" name="Worker Triggered" />
+    <bpmn:receiveTask id="Worker_Receive" name="Receive Dispatch" />
+    <bpmn:endEvent id="Worker_End" name="Worker End" />
+
+    <bpmn:sequenceFlow id="Worker_Flow_1" sourceRef="Worker_Start" targetRef="Worker_Receive" />
+    <bpmn:sequenceFlow id="Worker_Flow_2" sourceRef="Worker_Receive" targetRef="Worker_End" />
+  </bpmn:process>
+
+  <bpmn:collaboration id="Collab_NestedMessage">
+    <bpmn:participant id="Participant_Orchestrator" processRef="Process_Orchestrator" />
+    <bpmn:participant id="Participant_Worker" processRef="Process_Worker" />
+    <bpmn:messageFlow id="Msg_Dispatch" sourceRef="Throw_Dispatch" targetRef="Worker_Start" />
+    <bpmn:messageFlow id="Msg_DispatchCopy" sourceRef="Throw_Dispatch" targetRef="Worker_Receive" />
+  </bpmn:collaboration>
+</bpmn:definitions>

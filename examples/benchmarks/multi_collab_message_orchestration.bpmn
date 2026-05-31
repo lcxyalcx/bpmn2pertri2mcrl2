@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_MultiCollabOrchestration"
+                  targetNamespace="http://example.com/benchmarks/multi-collab-orchestration">
+  <bpmn:process id="Process_Client" isExecutable="false">
+    <bpmn:startEvent id="Client_Start" name="Client Start" />
+    <bpmn:sendTask id="Client_SendRequest" name="Send Request" />
+    <bpmn:intermediateCatchEvent id="Client_WaitQuote" name="Wait Quote" />
+    <bpmn:sendTask id="Client_SendApproval" name="Send Approval" />
+    <bpmn:endEvent id="Client_End" name="Client End" />
+
+    <bpmn:sequenceFlow id="Client_Flow_1" sourceRef="Client_Start" targetRef="Client_SendRequest" />
+    <bpmn:sequenceFlow id="Client_Flow_2" sourceRef="Client_SendRequest" targetRef="Client_WaitQuote" />
+    <bpmn:sequenceFlow id="Client_Flow_3" sourceRef="Client_WaitQuote" targetRef="Client_SendApproval" />
+    <bpmn:sequenceFlow id="Client_Flow_4" sourceRef="Client_SendApproval" targetRef="Client_End" />
+  </bpmn:process>
+
+  <bpmn:process id="Process_Broker" isExecutable="false">
+    <bpmn:startEvent id="Broker_Start" name="Broker Start" />
+    <bpmn:task id="Broker_Assess" name="Assess Request" />
+    <bpmn:sendTask id="Broker_RequestSupplier" name="Request Supplier Quote" />
+    <bpmn:intermediateCatchEvent id="Broker_WaitSupplierQuote" name="Wait Supplier Quote" />
+    <bpmn:sendTask id="Broker_SendQuoteToClient" name="Send Quote To Client" />
+    <bpmn:receiveTask id="Broker_ReceiveApproval" name="Receive Approval" />
+    <bpmn:endEvent id="Broker_End" name="Broker End" />
+
+    <bpmn:sequenceFlow id="Broker_Flow_1" sourceRef="Broker_Start" targetRef="Broker_Assess" />
+    <bpmn:sequenceFlow id="Broker_Flow_2" sourceRef="Broker_Assess" targetRef="Broker_RequestSupplier" />
+    <bpmn:sequenceFlow id="Broker_Flow_3" sourceRef="Broker_RequestSupplier" targetRef="Broker_WaitSupplierQuote" />
+    <bpmn:sequenceFlow id="Broker_Flow_4" sourceRef="Broker_WaitSupplierQuote" targetRef="Broker_SendQuoteToClient" />
+    <bpmn:sequenceFlow id="Broker_Flow_5" sourceRef="Broker_SendQuoteToClient" targetRef="Broker_ReceiveApproval" />
+    <bpmn:sequenceFlow id="Broker_Flow_6" sourceRef="Broker_ReceiveApproval" targetRef="Broker_End" />
+  </bpmn:process>
+
+  <bpmn:process id="Process_Supplier" isExecutable="false">
+    <bpmn:startEvent id="Supplier_Start" name="Supplier Triggered" />
+    <bpmn:task id="Supplier_PrepareQuote" name="Prepare Quote" />
+    <bpmn:sendTask id="Supplier_SendQuote" name="Send Quote" />
+    <bpmn:endEvent id="Supplier_End" name="Supplier End" />
+
+    <bpmn:sequenceFlow id="Supplier_Flow_1" sourceRef="Supplier_Start" targetRef="Supplier_PrepareQuote" />
+    <bpmn:sequenceFlow id="Supplier_Flow_2" sourceRef="Supplier_PrepareQuote" targetRef="Supplier_SendQuote" />
+    <bpmn:sequenceFlow id="Supplier_Flow_3" sourceRef="Supplier_SendQuote" targetRef="Supplier_End" />
+  </bpmn:process>
+
+  <bpmn:collaboration id="Collab_MultiParty">
+    <bpmn:participant id="Participant_Client" processRef="Process_Client" />
+    <bpmn:participant id="Participant_Broker" processRef="Process_Broker" />
+    <bpmn:participant id="Participant_Supplier" processRef="Process_Supplier" />
+    <bpmn:messageFlow id="Msg_ClientToBroker_Request" sourceRef="Client_SendRequest" targetRef="Broker_Start" />
+    <bpmn:messageFlow id="Msg_BrokerToSupplier_Request" sourceRef="Broker_RequestSupplier" targetRef="Supplier_Start" />
+    <bpmn:messageFlow id="Msg_SupplierToBroker_Quote" sourceRef="Supplier_SendQuote" targetRef="Broker_WaitSupplierQuote" />
+    <bpmn:messageFlow id="Msg_BrokerToClient_Quote" sourceRef="Broker_SendQuoteToClient" targetRef="Client_WaitQuote" />
+    <bpmn:messageFlow id="Msg_ClientToBroker_Approval" sourceRef="Client_SendApproval" targetRef="Broker_ReceiveApproval" />
+  </bpmn:collaboration>
+</bpmn:definitions>

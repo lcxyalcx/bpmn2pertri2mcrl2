@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_GatewayMix"
+                  targetNamespace="http://example.com/benchmarks/gateway-mix">
+  <bpmn:process id="Process_GatewayMix" isExecutable="false">
+    <bpmn:startEvent id="Start_Order" name="Order Arrived" />
+    <bpmn:exclusiveGateway id="Xor_Decision" name="Accept Order?" />
+    <bpmn:task id="Task_Reject" name="Reject Order" />
+    <bpmn:parallelGateway id="And_Split" name="Parallel Prep" />
+    <bpmn:task id="Task_Pack" name="Pack Item" />
+    <bpmn:task id="Task_Bill" name="Prepare Invoice" />
+    <bpmn:parallelGateway id="And_Join" name="Prep Joined" />
+    <bpmn:task id="Task_Ship" name="Ship Order" />
+    <bpmn:exclusiveGateway id="Xor_Merge" name="Final Merge" />
+    <bpmn:endEvent id="End_Done" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_Order" targetRef="Xor_Decision" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Xor_Decision" targetRef="Task_Reject" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Xor_Decision" targetRef="And_Split" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="And_Split" targetRef="Task_Pack" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="And_Split" targetRef="Task_Bill" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_Pack" targetRef="And_Join" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_Bill" targetRef="And_Join" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="And_Join" targetRef="Task_Ship" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_Reject" targetRef="Xor_Merge" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_Ship" targetRef="Xor_Merge" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Xor_Merge" targetRef="End_Done" />
+  </bpmn:process>
+</bpmn:definitions>

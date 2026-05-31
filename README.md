@@ -272,12 +272,24 @@ $$
 - 兼容 bpmn2petrinet.com 导出的 PNML，也提供本地 BPMN-aware PNML 生成器
 - 官方完整版 Pizza 示例已贯通整个流程（见 `examples/pizza_official.bpmn`、`examples/pizza_official_local.pnml`、`examples/pizza_official_local.mcrl2`）
 - 轻量示例只作为 smoke test 保留（见 `examples/pizza.bpmn` 和 `examples/pizza.pnml`）
+- 新增基准样例覆盖集（见 `examples/benchmarks/`），当前共 11 个场景，覆盖跨网关、事件并行、跨池消息循环、边界事件中断模式、多实例近似语义、多协作方消息编排、子流程嵌套组合
 - 该脚本基于 PNML 的 `place / transition / arc` 结构进行解析
 - 每个 transition 生成一个 mCRL2 action
 - 默认使用 transition 名称生成语义化 action；使用 `--generic-actions` 时生成 `fire_t_i`
 - 标记向量 `Marking` 作为状态；守卫条件为输入 place 的 token >= 1
 - 更新函数用 mCRL2 的 `lambda` 构造
 - 适用范围见 [`docs/BPMN_SUPPORT.md`](docs/BPMN_SUPPORT.md)；验证报告见 [`docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md`](docs/compatibility/COMPATIBILITY_VERIFICATION_REPORT.md)
+
+### 基准样例覆盖检查
+
+```bash
+python scripts/run_benchmark_suite.py
+```
+
+输出位置：
+
+- `docs/compatibility/benchmarks/benchmark_suite_report.json`
+- `docs/compatibility/benchmarks/benchmark_suite_report.md`
 
 ## 🗂 文件结构
 
@@ -289,9 +301,11 @@ $$
 | `scripts/check_bpmn_compatibility.py` | BPMN 兼容性扫描 |
 | `scripts/check_pizza_official.py` | 官方 Pizza modal formula / LTS 验证 |
 | `scripts/verify_workflow.py` | 通用 BPMN / PNML / mCRL2 验证与 LTS 可视化 |
+| `scripts/run_benchmark_suite.py` | 基准样例覆盖检查（跨网关/消息/子流程组合） |
 | `scripts/verification_utils.py` | 验证与 LTS SVG 共用工具函数 |
 | `scripts/compare_pizza_local_vs_web.py` | 本地 vs 网页转换对照 |
 | `scripts/rerun_pizza_official_pipeline.py` | 重跑官方 Pizza 完整流水线 |
+| `examples/benchmarks/` | 基准样例覆盖集与清单（`suite_manifest.json`） |
 | `examples/pizza_official.bpmn` | 官方 Pizza BPMN 示例 |
 | `examples/pizza_official_local.pnml` | 本地转换器生成的 PNML |
 | `examples/pizza_official_local.mcrl2` | 本地语义 mCRL2 输出 |

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_BoundaryInterruptModes"
+                  targetNamespace="http://example.com/benchmarks/boundary-modes">
+  <bpmn:process id="Process_BoundaryModes" isExecutable="false">
+    <bpmn:startEvent id="Start_1" name="Start Ticket" />
+    <bpmn:task id="Task_Main" name="Process Ticket" />
+    <bpmn:boundaryEvent id="Boundary_Interrupting" name="Interrupting Escalation" attachedToRef="Task_Main" cancelActivity="true" />
+    <bpmn:boundaryEvent id="Boundary_NonInterrupting" name="Non-Interrupting Reminder" attachedToRef="Task_Main" cancelActivity="false" />
+    <bpmn:task id="Task_InterruptFlow" name="Handle Escalation" />
+    <bpmn:task id="Task_ReminderFlow" name="Send Reminder" />
+    <bpmn:exclusiveGateway id="Gateway_Close" name="Close Gateway" />
+    <bpmn:endEvent id="End_1" name="End Ticket" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_Main" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Main" targetRef="Gateway_Close" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Boundary_Interrupting" targetRef="Task_InterruptFlow" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Boundary_NonInterrupting" targetRef="Task_ReminderFlow" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_InterruptFlow" targetRef="Gateway_Close" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_ReminderFlow" targetRef="Gateway_Close" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Gateway_Close" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>

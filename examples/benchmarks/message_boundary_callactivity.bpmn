@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_MessageBoundary"
+                  targetNamespace="http://example.com/benchmarks/message-boundary">
+  <bpmn:process id="Process_Buyer" isExecutable="false">
+    <bpmn:startEvent id="Buyer_Start" name="Need Service" />
+    <bpmn:callActivity id="Call_SubmitOrder" name="Submit Order Call" />
+    <bpmn:sendTask id="Send_Escalation" name="Send Escalation" />
+    <bpmn:endEvent id="Buyer_End" name="Buyer Completed" />
+
+    <bpmn:sequenceFlow id="Buyer_Flow_1" sourceRef="Buyer_Start" targetRef="Call_SubmitOrder" />
+    <bpmn:sequenceFlow id="Buyer_Flow_2" sourceRef="Call_SubmitOrder" targetRef="Send_Escalation" />
+    <bpmn:sequenceFlow id="Buyer_Flow_3" sourceRef="Send_Escalation" targetRef="Buyer_End" />
+  </bpmn:process>
+
+  <bpmn:process id="Process_Vendor" isExecutable="false">
+    <bpmn:startEvent id="Vendor_Start" name="Order Received" />
+    <bpmn:userTask id="Task_HandleOrder" name="Handle Order" />
+    <bpmn:boundaryEvent id="Boundary_Escalation" name="Escalation Arrived" attachedToRef="Task_HandleOrder" />
+    <bpmn:receiveTask id="Task_ReceiveUpdate" name="Receive Update" />
+    <bpmn:endEvent id="Vendor_End" name="Vendor Completed" />
+
+    <bpmn:sequenceFlow id="Vendor_Flow_1" sourceRef="Vendor_Start" targetRef="Task_HandleOrder" />
+    <bpmn:sequenceFlow id="Vendor_Flow_2" sourceRef="Task_HandleOrder" targetRef="Vendor_End" />
+    <bpmn:sequenceFlow id="Vendor_Flow_3" sourceRef="Boundary_Escalation" targetRef="Task_ReceiveUpdate" />
+    <bpmn:sequenceFlow id="Vendor_Flow_4" sourceRef="Task_ReceiveUpdate" targetRef="Vendor_End" />
+  </bpmn:process>
+
+  <bpmn:collaboration id="Collab_MessageBoundary">
+    <bpmn:participant id="Participant_Buyer" processRef="Process_Buyer" />
+    <bpmn:participant id="Participant_Vendor" processRef="Process_Vendor" />
+    <bpmn:messageFlow id="Msg_Order" sourceRef="Call_SubmitOrder" targetRef="Vendor_Start" />
+    <bpmn:messageFlow id="Msg_Escalation" sourceRef="Send_Escalation" targetRef="Boundary_Escalation" />
+    <bpmn:messageFlow id="Msg_Update" sourceRef="Send_Escalation" targetRef="Task_ReceiveUpdate" />
+  </bpmn:collaboration>
+</bpmn:definitions>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_GatewayXorOrMix"
+                  targetNamespace="http://example.com/benchmarks/gateway-xor-or">
+  <bpmn:process id="Process_GatewayXorOrMix" isExecutable="false">
+    <bpmn:startEvent id="Start_1" name="Case Opened" />
+    <bpmn:exclusiveGateway id="Xor_Split" name="Simple Or Complex?" />
+    <bpmn:task id="Task_FastTrack" name="Fast Track" />
+    <bpmn:inclusiveGateway id="Or_Split" name="Review Scope" />
+    <bpmn:task id="Task_ReviewA" name="Review A" />
+    <bpmn:task id="Task_ReviewB" name="Review B" />
+    <bpmn:inclusiveGateway id="Or_Join" name="Reviews Joined" />
+    <bpmn:task id="Task_Finalize" name="Finalize" />
+    <bpmn:exclusiveGateway id="Xor_Join" name="Path Join" />
+    <bpmn:endEvent id="End_1" name="Case Closed" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Xor_Split" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Xor_Split" targetRef="Task_FastTrack" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Xor_Split" targetRef="Or_Split" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Or_Split" targetRef="Task_ReviewA" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Or_Split" targetRef="Task_ReviewB" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_ReviewA" targetRef="Or_Join" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_ReviewB" targetRef="Or_Join" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Or_Join" targetRef="Task_Finalize" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_FastTrack" targetRef="Xor_Join" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_Finalize" targetRef="Xor_Join" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Xor_Join" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_BoundaryParallelEscalation"
+                  targetNamespace="http://example.com/benchmarks/boundary-parallel">
+  <bpmn:process id="Process_BoundaryParallelEscalation" isExecutable="false">
+    <bpmn:startEvent id="Start_1" name="Ticket Created" />
+    <bpmn:task id="Task_MainWork" name="Handle Ticket" />
+    <bpmn:boundaryEvent id="Boundary_Timeout" name="Timeout Trigger" attachedToRef="Task_MainWork" />
+    <bpmn:parallelGateway id="And_EscalateSplit" name="Escalate In Parallel" />
+    <bpmn:task id="Task_NotifyLead" name="Notify Team Lead" />
+    <bpmn:task id="Task_CollectLogs" name="Collect Logs" />
+    <bpmn:parallelGateway id="And_EscalateJoin" name="Escalation Joined" />
+    <bpmn:exclusiveGateway id="Xor_Close" name="Close Path" />
+    <bpmn:endEvent id="End_1" name="Closed" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_MainWork" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_MainWork" targetRef="Xor_Close" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Boundary_Timeout" targetRef="And_EscalateSplit" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="And_EscalateSplit" targetRef="Task_NotifyLead" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="And_EscalateSplit" targetRef="Task_CollectLogs" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_NotifyLead" targetRef="And_EscalateJoin" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_CollectLogs" targetRef="And_EscalateJoin" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="And_EscalateJoin" targetRef="Xor_Close" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Xor_Close" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>

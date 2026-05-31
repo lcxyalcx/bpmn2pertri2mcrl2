@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_EventBasedParallelMix"
+                  targetNamespace="http://example.com/benchmarks/eventbased-parallel">
+  <bpmn:process id="Process_EventBasedParallelMix" isExecutable="false">
+    <bpmn:startEvent id="Start_1" name="Request Arrived" />
+    <bpmn:parallelGateway id="And_Split" name="Dual Tracking" />
+    <bpmn:task id="Task_PrepareResponse" name="Prepare Response" />
+    <bpmn:eventBasedGateway id="Gateway_Event" name="Wait Signal" />
+    <bpmn:intermediateCatchEvent id="Catch_Message" name="Client Message" />
+    <bpmn:intermediateCatchEvent id="Catch_Timeout" name="Timeout" />
+    <bpmn:task id="Task_HandleMessage" name="Handle Message" />
+    <bpmn:task id="Task_HandleTimeout" name="Handle Timeout" />
+    <bpmn:task id="Task_BackgroundCheck" name="Background Check" />
+    <bpmn:parallelGateway id="And_Join" name="Join Checks" />
+    <bpmn:endEvent id="End_1" name="Completed" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="And_Split" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="And_Split" targetRef="Task_PrepareResponse" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="And_Split" targetRef="Task_BackgroundCheck" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_PrepareResponse" targetRef="Gateway_Event" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Gateway_Event" targetRef="Catch_Message" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Gateway_Event" targetRef="Catch_Timeout" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Catch_Message" targetRef="Task_HandleMessage" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Catch_Timeout" targetRef="Task_HandleTimeout" />
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_HandleMessage" targetRef="And_Join" />
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_HandleTimeout" targetRef="And_Join" />
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="Task_BackgroundCheck" targetRef="And_Join" />
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="And_Join" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>

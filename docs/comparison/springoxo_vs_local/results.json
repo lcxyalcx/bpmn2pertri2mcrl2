@@ -1,0 +1,219 @@
+{
+  "generated_at_epoch": 1780214189,
+  "repo_root": "/Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main",
+  "spring_repo_root": "/private/tmp/springoxo_bpmn2mcrl2",
+  "source_bpmn_stats": {
+    "path": "/Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/examples/pizza_official.bpmn",
+    "feature_counts": {
+      "participant": 2,
+      "process": 2,
+      "task": 9,
+      "userTask": 0,
+      "serviceTask": 0,
+      "sendTask": 0,
+      "receiveTask": 0,
+      "subProcess": 0,
+      "eventBasedGateway": 1,
+      "parallelGateway": 1,
+      "exclusiveGateway": 0,
+      "messageFlow": 6,
+      "sequenceFlow": 18,
+      "boundaryEvent": 0,
+      "startEvent": 2,
+      "endEvent": 2,
+      "intermediateCatchEvent": 3,
+      "intermediateThrowEvent": 0
+    }
+  },
+  "selected_run": {
+    "input_bpmn": "/Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/examples/pizza_official.bpmn",
+    "commands": {
+      "local_bpmn_to_pnml": {
+        "command": "python bpmn2pnml_local.py /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/examples/pizza_official.bpmn -o /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/local_pizza_official.pnml",
+        "returncode": 0,
+        "ok": true,
+        "elapsed_seconds": 0.0429,
+        "stdout": "",
+        "stderr": ""
+      },
+      "local_pnml_to_mcrl2": {
+        "command": "python pnml2mcrl2.py /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/local_pizza_official.pnml -o /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/local_pizza_official.mcrl2",
+        "returncode": 0,
+        "ok": true,
+        "elapsed_seconds": 0.037,
+        "stdout": "",
+        "stderr": ""
+      },
+      "springoxo_bpmn_to_mcrl2": {
+        "command": "python /private/tmp/springoxo_bpmn2mcrl2/scripts/bpmn2mcrl2.py /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/examples/pizza_official.bpmn /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/springoxo_pizza_official.mcrl2",
+        "returncode": 0,
+        "ok": true,
+        "elapsed_seconds": 0.0339,
+        "stdout": "正在解析 BPMN 协作模型: /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/examples/pizza_official.bpmn ...\n✅ 转换完成！输出至: /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/springoxo_pizza_official.mcrl2\n",
+        "stderr": ""
+      }
+    },
+    "success": {
+      "local": true,
+      "springoxo": true,
+      "both": true
+    },
+    "local_outputs": {
+      "pnml": {
+        "path": "/Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/local_pizza_official.pnml",
+        "places": 27,
+        "transitions": 23,
+        "arcs": 56,
+        "initial_tokens": 1,
+        "places_with_initial_tokens": 1
+      },
+      "mcrl2": {
+        "path": "/Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/local_pizza_official.mcrl2",
+        "line_count": 192,
+        "process_count": 1,
+        "allow_action_count": 0,
+        "comm_rule_count": 0,
+        "action_readability": {
+          "total_actions": 23,
+          "valid_mcrl2_identifiers": 23,
+          "invalid_mcrl2_identifiers": [],
+          "send_actions": 0,
+          "receive_actions": 0,
+          "communication_actions": 0,
+          "generic_fire_actions": 0
+        },
+        "syntax_validation": {
+          "tool_available": true,
+          "ok": true,
+          "returncode": 0,
+          "stdout": "",
+          "stderr": ""
+        }
+      }
+    },
+    "springoxo_outputs": {
+      "mcrl2": {
+        "path": "/Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/springoxo_pizza_official.mcrl2",
+        "line_count": 21,
+        "process_count": 5,
+        "allow_action_count": 15,
+        "comm_rule_count": 8,
+        "action_readability": {
+          "total_actions": 32,
+          "valid_mcrl2_identifiers": 31,
+          "invalid_mcrl2_identifiers": [
+            "6_180"
+          ],
+          "send_actions": 9,
+          "receive_actions": 8,
+          "communication_actions": 8,
+          "generic_fire_actions": 0
+        },
+        "syntax_validation": {
+          "tool_available": true,
+          "ok": false,
+          "returncode": 1,
+          "stdout": "",
+          "stderr": "Line 5, column 2: syntax error after 'act'\n    6_180, bake_the_pizza, c_6_642, c_6_750, c_money, c_pizza, c_pizza_order, c_receipt, c_start_gw_1, c_sync_join_1, eat_the_pizza, event_60_minutes, hunger_satisfied, r_6_642, r_6_750, r_money, r_pizza, r_pizza_order, r_receipt, r_start_gw_1, r_sync_join_1, s_6_642, s_6_750, s_money, s_pizza, s_pizza_order, s_receipt, s_start_gw_1, s_sync_1_0, s_sync_1_1, select_a_pizza, unnamed_action : OrderId;\n    ^\nsyntax error\n"
+        }
+      }
+    }
+  },
+  "attempts": [
+    {
+      "input_bpmn": "/Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/examples/pizza_official.bpmn",
+      "commands": {
+        "local_bpmn_to_pnml": {
+          "command": "python bpmn2pnml_local.py /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/examples/pizza_official.bpmn -o /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/local_pizza_official.pnml",
+          "returncode": 0,
+          "ok": true,
+          "elapsed_seconds": 0.0429,
+          "stdout": "",
+          "stderr": ""
+        },
+        "local_pnml_to_mcrl2": {
+          "command": "python pnml2mcrl2.py /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/local_pizza_official.pnml -o /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/local_pizza_official.mcrl2",
+          "returncode": 0,
+          "ok": true,
+          "elapsed_seconds": 0.037,
+          "stdout": "",
+          "stderr": ""
+        },
+        "springoxo_bpmn_to_mcrl2": {
+          "command": "python /private/tmp/springoxo_bpmn2mcrl2/scripts/bpmn2mcrl2.py /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/examples/pizza_official.bpmn /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/springoxo_pizza_official.mcrl2",
+          "returncode": 0,
+          "ok": true,
+          "elapsed_seconds": 0.0339,
+          "stdout": "正在解析 BPMN 协作模型: /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/examples/pizza_official.bpmn ...\n✅ 转换完成！输出至: /Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/springoxo_pizza_official.mcrl2\n",
+          "stderr": ""
+        }
+      },
+      "success": {
+        "local": true,
+        "springoxo": true,
+        "both": true
+      },
+      "local_outputs": {
+        "pnml": {
+          "path": "/Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/local_pizza_official.pnml",
+          "places": 27,
+          "transitions": 23,
+          "arcs": 56,
+          "initial_tokens": 1,
+          "places_with_initial_tokens": 1
+        },
+        "mcrl2": {
+          "path": "/Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/local_pizza_official.mcrl2",
+          "line_count": 192,
+          "process_count": 1,
+          "allow_action_count": 0,
+          "comm_rule_count": 0,
+          "action_readability": {
+            "total_actions": 23,
+            "valid_mcrl2_identifiers": 23,
+            "invalid_mcrl2_identifiers": [],
+            "send_actions": 0,
+            "receive_actions": 0,
+            "communication_actions": 0,
+            "generic_fire_actions": 0
+          },
+          "syntax_validation": {
+            "tool_available": true,
+            "ok": true,
+            "returncode": 0,
+            "stdout": "",
+            "stderr": ""
+          }
+        }
+      },
+      "springoxo_outputs": {
+        "mcrl2": {
+          "path": "/Users/jacobliu/Downloads/bpmn2pertri2mcrl2-main/docs/comparison/springoxo_vs_local/results/springoxo_pizza_official.mcrl2",
+          "line_count": 21,
+          "process_count": 5,
+          "allow_action_count": 15,
+          "comm_rule_count": 8,
+          "action_readability": {
+            "total_actions": 32,
+            "valid_mcrl2_identifiers": 31,
+            "invalid_mcrl2_identifiers": [
+              "6_180"
+            ],
+            "send_actions": 9,
+            "receive_actions": 8,
+            "communication_actions": 8,
+            "generic_fire_actions": 0
+          },
+          "syntax_validation": {
+            "tool_available": true,
+            "ok": false,
+            "returncode": 1,
+            "stdout": "",
+            "stderr": "Line 5, column 2: syntax error after 'act'\n    6_180, bake_the_pizza, c_6_642, c_6_750, c_money, c_pizza, c_pizza_order, c_receipt, c_start_gw_1, c_sync_join_1, eat_the_pizza, event_60_minutes, hunger_satisfied, r_6_642, r_6_750, r_money, r_pizza, r_pizza_order, r_receipt, r_start_gw_1, r_sync_join_1, s_6_642, s_6_750, s_money, s_pizza, s_pizza_order, s_receipt, s_start_gw_1, s_sync_1_0, s_sync_1_1, select_a_pizza, unnamed_action : OrderId;\n    ^\nsyntax error\n"
+          }
+        }
+      }
+    }
+  ],
+  "selection_policy": "prefer examples/pizza_official.bpmn; fallback examples/pizza.bpmn only when needed"
+}

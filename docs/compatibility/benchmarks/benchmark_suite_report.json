@@ -1,0 +1,355 @@
+{
+  "summary": {
+    "suite_name": "bpmn_benchmark_coverage_v3",
+    "manifest": "examples/benchmarks/suite_manifest.json",
+    "total": 11,
+    "compatible": 11,
+    "incompatible": 0,
+    "category_summary": {
+      "gateway": {
+        "total": 5,
+        "compatible": 5,
+        "incompatible": 0
+      },
+      "xor": {
+        "total": 2,
+        "compatible": 2,
+        "incompatible": 0
+      },
+      "parallel": {
+        "total": 3,
+        "compatible": 3,
+        "incompatible": 0
+      },
+      "mixed-control-flow": {
+        "total": 3,
+        "compatible": 3,
+        "incompatible": 0
+      },
+      "message-flow": {
+        "total": 4,
+        "compatible": 4,
+        "incompatible": 0
+      },
+      "boundary-event": {
+        "total": 3,
+        "compatible": 3,
+        "incompatible": 0
+      },
+      "call-activity": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "collaboration": {
+        "total": 3,
+        "compatible": 3,
+        "incompatible": 0
+      },
+      "subprocess": {
+        "total": 2,
+        "compatible": 2,
+        "incompatible": 0
+      },
+      "transaction": {
+        "total": 2,
+        "compatible": 2,
+        "incompatible": 0
+      },
+      "nested-subprocess": {
+        "total": 2,
+        "compatible": 2,
+        "incompatible": 0
+      },
+      "container-flattening": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "inclusive": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "event-based": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "cross-pool": {
+        "total": 2,
+        "compatible": 2,
+        "incompatible": 0
+      },
+      "loop": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "escalation-pattern": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "multi-instance": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "approximation": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "task-variation": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "interrupting": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "non-interrupting": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "multi-collaboration": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      },
+      "orchestration": {
+        "total": 1,
+        "compatible": 1,
+        "incompatible": 0
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "gateway-xor-parallel-mix",
+      "file": "examples/benchmarks/gateway_xor_parallel_mix.bpmn",
+      "focus": "XOR + AND mixed routing",
+      "categories": [
+        "gateway",
+        "xor",
+        "parallel",
+        "mixed-control-flow"
+      ],
+      "compatible": true,
+      "parsed_nodes": 10,
+      "parsed_sequence_flows": 11,
+      "parsed_message_flows": 0,
+      "pnml_places": 13,
+      "pnml_transitions": 12,
+      "pnml_arcs": 26,
+      "blocking_issues": [],
+      "warnings": []
+    },
+    {
+      "id": "message-boundary-callactivity",
+      "file": "examples/benchmarks/message_boundary_callactivity.bpmn",
+      "focus": "messageFlow + boundaryEvent + callActivity/userTask",
+      "categories": [
+        "message-flow",
+        "boundary-event",
+        "call-activity",
+        "collaboration"
+      ],
+      "compatible": true,
+      "parsed_nodes": 9,
+      "parsed_sequence_flows": 7,
+      "parsed_message_flows": 3,
+      "pnml_places": 15,
+      "pnml_transitions": 10,
+      "pnml_arcs": 27,
+      "blocking_issues": [],
+      "warnings": []
+    },
+    {
+      "id": "subprocess-transaction-nested",
+      "file": "examples/benchmarks/subprocess_transaction_nested.bpmn",
+      "focus": "subProcess + transaction + nested subProcess",
+      "categories": [
+        "subprocess",
+        "transaction",
+        "nested-subprocess",
+        "container-flattening"
+      ],
+      "compatible": true,
+      "parsed_nodes": 10,
+      "parsed_sequence_flows": 15,
+      "parsed_message_flows": 0,
+      "pnml_places": 17,
+      "pnml_transitions": 10,
+      "pnml_arcs": 26,
+      "blocking_issues": [],
+      "warnings": []
+    },
+    {
+      "id": "gateway-xor-or-mix",
+      "file": "examples/benchmarks/gateway_xor_or_mix.bpmn",
+      "focus": "XOR + OR mixed routing",
+      "categories": [
+        "gateway",
+        "xor",
+        "inclusive",
+        "mixed-control-flow"
+      ],
+      "compatible": true,
+      "parsed_nodes": 10,
+      "parsed_sequence_flows": 11,
+      "parsed_message_flows": 0,
+      "pnml_places": 13,
+      "pnml_transitions": 16,
+      "pnml_arcs": 34,
+      "blocking_issues": [],
+      "warnings": []
+    },
+    {
+      "id": "eventbased-parallel-mix",
+      "file": "examples/benchmarks/eventbased_parallel_mix.bpmn",
+      "focus": "eventBasedGateway + parallelGateway",
+      "categories": [
+        "event-based",
+        "parallel",
+        "gateway",
+        "mixed-control-flow"
+      ],
+      "compatible": true,
+      "parsed_nodes": 11,
+      "parsed_sequence_flows": 12,
+      "parsed_message_flows": 0,
+      "pnml_places": 14,
+      "pnml_transitions": 12,
+      "pnml_arcs": 27,
+      "blocking_issues": [],
+      "warnings": []
+    },
+    {
+      "id": "cross-pool-message-loop",
+      "file": "examples/benchmarks/cross_pool_message_loop.bpmn",
+      "focus": "Cross-pool message loop with feedback/update cycle",
+      "categories": [
+        "message-flow",
+        "cross-pool",
+        "loop",
+        "collaboration"
+      ],
+      "compatible": true,
+      "parsed_nodes": 11,
+      "parsed_sequence_flows": 10,
+      "parsed_message_flows": 3,
+      "pnml_places": 18,
+      "pnml_transitions": 14,
+      "pnml_arcs": 35,
+      "blocking_issues": [],
+      "warnings": []
+    },
+    {
+      "id": "boundary-parallel-escalation",
+      "file": "examples/benchmarks/boundary_parallel_escalation.bpmn",
+      "focus": "boundaryEvent + parallel escalation branch",
+      "categories": [
+        "boundary-event",
+        "parallel",
+        "gateway",
+        "escalation-pattern"
+      ],
+      "compatible": true,
+      "parsed_nodes": 9,
+      "parsed_sequence_flows": 9,
+      "parsed_message_flows": 0,
+      "pnml_places": 11,
+      "pnml_transitions": 10,
+      "pnml_arcs": 22,
+      "blocking_issues": [],
+      "warnings": []
+    },
+    {
+      "id": "nested-container-message-combo",
+      "file": "examples/benchmarks/nested_container_message_combo.bpmn",
+      "focus": "Nested containers + message dispatch",
+      "categories": [
+        "subprocess",
+        "transaction",
+        "message-flow",
+        "nested-subprocess",
+        "collaboration"
+      ],
+      "compatible": true,
+      "parsed_nodes": 12,
+      "parsed_sequence_flows": 12,
+      "parsed_message_flows": 2,
+      "pnml_places": 19,
+      "pnml_transitions": 13,
+      "pnml_arcs": 32,
+      "blocking_issues": [],
+      "warnings": []
+    },
+    {
+      "id": "multi-instance-approximation",
+      "file": "examples/benchmarks/multi_instance_approximation.bpmn",
+      "focus": "multiInstanceLoopCharacteristics approximation handling",
+      "categories": [
+        "multi-instance",
+        "approximation",
+        "task-variation"
+      ],
+      "compatible": true,
+      "parsed_nodes": 4,
+      "parsed_sequence_flows": 3,
+      "parsed_message_flows": 0,
+      "pnml_places": 5,
+      "pnml_transitions": 4,
+      "pnml_arcs": 8,
+      "blocking_issues": [],
+      "warnings": [
+        "节点 Task_Review (userTask) 含多实例标记，当前按单实例转换"
+      ]
+    },
+    {
+      "id": "boundary-interrupt-modes",
+      "file": "examples/benchmarks/boundary_interrupt_modes.bpmn",
+      "focus": "Interrupting and non-interrupting boundary event combination",
+      "categories": [
+        "boundary-event",
+        "interrupting",
+        "non-interrupting",
+        "gateway"
+      ],
+      "compatible": true,
+      "parsed_nodes": 8,
+      "parsed_sequence_flows": 7,
+      "parsed_message_flows": 0,
+      "pnml_places": 9,
+      "pnml_transitions": 10,
+      "pnml_arcs": 20,
+      "blocking_issues": [],
+      "warnings": []
+    },
+    {
+      "id": "multi-collab-message-orchestration",
+      "file": "examples/benchmarks/multi_collab_message_orchestration.bpmn",
+      "focus": "Three-party message choreography across pools",
+      "categories": [
+        "message-flow",
+        "multi-collaboration",
+        "orchestration",
+        "cross-pool"
+      ],
+      "compatible": true,
+      "parsed_nodes": 16,
+      "parsed_sequence_flows": 13,
+      "parsed_message_flows": 5,
+      "pnml_places": 25,
+      "pnml_transitions": 17,
+      "pnml_arcs": 44,
+      "blocking_issues": [],
+      "warnings": []
+    }
+  ]
+}

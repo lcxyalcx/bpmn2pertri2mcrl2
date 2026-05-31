@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_SubprocessNested"
+                  targetNamespace="http://example.com/benchmarks/subprocess-nested">
+  <bpmn:process id="Process_SubprocessNested" isExecutable="false">
+    <bpmn:startEvent id="Main_Start" name="Main Start" />
+    <bpmn:subProcess id="Sub_Main" name="Main Subprocess">
+      <bpmn:startEvent id="Sub_Start" name="Sub Start" />
+      <bpmn:transaction id="Txn_Review" name="Transaction Review">
+        <bpmn:startEvent id="Txn_Start" name="Txn Start" />
+        <bpmn:subProcess id="Sub_Nested" name="Nested Subprocess">
+          <bpmn:startEvent id="Nested_Start" name="Nested Start" />
+          <bpmn:userTask id="Nested_Verify" name="Nested Verify" />
+          <bpmn:endEvent id="Nested_End" name="Nested End" />
+          <bpmn:sequenceFlow id="Flow_Nested_1" sourceRef="Nested_Start" targetRef="Nested_Verify" />
+          <bpmn:sequenceFlow id="Flow_Nested_2" sourceRef="Nested_Verify" targetRef="Nested_End" />
+        </bpmn:subProcess>
+        <bpmn:endEvent id="Txn_End" name="Txn End" />
+
+        <bpmn:sequenceFlow id="Flow_Txn_1" sourceRef="Txn_Start" targetRef="Sub_Nested" />
+        <bpmn:sequenceFlow id="Flow_Txn_2" sourceRef="Sub_Nested" targetRef="Txn_End" />
+      </bpmn:transaction>
+      <bpmn:callActivity id="Call_Notify" name="Notify External Service" />
+      <bpmn:endEvent id="Sub_End" name="Sub End" />
+
+      <bpmn:sequenceFlow id="Flow_Sub_1" sourceRef="Sub_Start" targetRef="Txn_Review" />
+      <bpmn:sequenceFlow id="Flow_Sub_2" sourceRef="Txn_Review" targetRef="Call_Notify" />
+      <bpmn:sequenceFlow id="Flow_Sub_3" sourceRef="Call_Notify" targetRef="Sub_End" />
+    </bpmn:subProcess>
+    <bpmn:endEvent id="Main_End" name="Main End" />
+
+    <bpmn:sequenceFlow id="Flow_Main_1" sourceRef="Main_Start" targetRef="Sub_Main" />
+    <bpmn:sequenceFlow id="Flow_Main_2" sourceRef="Sub_Main" targetRef="Main_End" />
+  </bpmn:process>
+</bpmn:definitions>

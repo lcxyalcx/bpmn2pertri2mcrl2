@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_CrossPoolMessageLoop"
+                  targetNamespace="http://example.com/benchmarks/cross-pool-loop">
+  <bpmn:process id="Process_Client" isExecutable="false">
+    <bpmn:startEvent id="Client_Start" name="Client Start" />
+    <bpmn:sendTask id="Client_SendRequest" name="Send Request" />
+    <bpmn:intermediateCatchEvent id="Client_WaitFeedback" name="Wait Feedback" />
+    <bpmn:exclusiveGateway id="Client_Decide" name="Need Update?" />
+    <bpmn:sendTask id="Client_SendUpdate" name="Send Update" />
+    <bpmn:endEvent id="Client_End" name="Client End" />
+
+    <bpmn:sequenceFlow id="Client_Flow_1" sourceRef="Client_Start" targetRef="Client_SendRequest" />
+    <bpmn:sequenceFlow id="Client_Flow_2" sourceRef="Client_SendRequest" targetRef="Client_WaitFeedback" />
+    <bpmn:sequenceFlow id="Client_Flow_3" sourceRef="Client_WaitFeedback" targetRef="Client_Decide" />
+    <bpmn:sequenceFlow id="Client_Flow_4" sourceRef="Client_Decide" targetRef="Client_SendUpdate" />
+    <bpmn:sequenceFlow id="Client_Flow_5" sourceRef="Client_Decide" targetRef="Client_End" />
+    <bpmn:sequenceFlow id="Client_Flow_6" sourceRef="Client_SendUpdate" targetRef="Client_WaitFeedback" />
+  </bpmn:process>
+
+  <bpmn:process id="Process_Service" isExecutable="false">
+    <bpmn:startEvent id="Service_Start" name="Service Start" />
+    <bpmn:receiveTask id="Service_ReceiveUpdate" name="Receive Update" />
+    <bpmn:task id="Service_Analyze" name="Analyze Request" />
+    <bpmn:sendTask id="Service_SendFeedback" name="Send Feedback" />
+    <bpmn:endEvent id="Service_End" name="Service End" />
+
+    <bpmn:sequenceFlow id="Service_Flow_1" sourceRef="Service_Start" targetRef="Service_Analyze" />
+    <bpmn:sequenceFlow id="Service_Flow_2" sourceRef="Service_Analyze" targetRef="Service_SendFeedback" />
+    <bpmn:sequenceFlow id="Service_Flow_3" sourceRef="Service_SendFeedback" targetRef="Service_ReceiveUpdate" />
+    <bpmn:sequenceFlow id="Service_Flow_4" sourceRef="Service_ReceiveUpdate" targetRef="Service_End" />
+  </bpmn:process>
+
+  <bpmn:collaboration id="Collab_CrossPoolLoop">
+    <bpmn:participant id="Participant_Client" processRef="Process_Client" />
+    <bpmn:participant id="Participant_Service" processRef="Process_Service" />
+    <bpmn:messageFlow id="Msg_Request" sourceRef="Client_SendRequest" targetRef="Service_Start" />
+    <bpmn:messageFlow id="Msg_Feedback" sourceRef="Service_SendFeedback" targetRef="Client_WaitFeedback" />
+    <bpmn:messageFlow id="Msg_Update" sourceRef="Client_SendUpdate" targetRef="Service_ReceiveUpdate" />
+  </bpmn:collaboration>
+</bpmn:definitions>
