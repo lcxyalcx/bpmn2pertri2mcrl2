@@ -129,6 +129,16 @@ class TestConverter(unittest.TestCase):
         self.assertTrue(report.compatible)
         self.assertTrue(report.mcrl2_generated)
 
+    def test_compatibility_checker_displays_external_output_paths(self):
+        import sys
+
+        sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "scripts"))
+        from check_bpmn_compatibility import _display_path
+
+        external_path = pathlib.Path(tempfile.gettempdir()) / "compatibility_report.json"
+        display = _display_path(external_path)
+        self.assertIn("compatibility_report.json", display)
+
     def test_exclusive_gateway_bpmn_to_pnml(self):
         bpmn = """<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
@@ -276,6 +286,88 @@ class TestConverter(unittest.TestCase):
         self.assertEqual(model.nodes["Task_1"].tag, "task")
         self.assertEqual(model.nodes["Task_1"].original_tag, "userTask")
         self.assertIn("Task_1", net.transitions)
+
+    def test_zeebe_task_definition_type_is_used_as_fallback_label(self):
+        from bpmn2pnml_local import convert_bpmn_to_pn, parse_bpmn
+
+        bpmn = """<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:zeebe="http://camunda.org/schema/zeebe/1.0">
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="Start_1" />
+    <bpmn:serviceTask id="Task_1">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="customs-clearance-to-terminal" />
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_1" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="End_1" />
+  </bpmn:process>
+</bpmn:definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bpmn_path = pathlib.Path(tmp_dir) / "zeebe_task.bpmn"
+            bpmn_path.write_text(bpmn, encoding="utf-8")
+            model = parse_bpmn(bpmn_path)
+            net = convert_bpmn_to_pn(model)
+
+        self.assertEqual(model.nodes["Task_1"].task_type, "customs-clearance-to-terminal")
+        self.assertEqual(net.transitions["Task_1"].name, "customs-clearance-to-terminal")
+
+    def test_message_flow_uses_referenced_message_name(self):
+        from bpmn2pnml_local import convert_bpmn_to_pn, parse_bpmn
+
+        bpmn = """<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+  <bpmn:message id="Message_1" name="order-to-ffw" />
+  <bpmn:process id="Process_1">
+    <bpmn:startEvent id="Start_1" />
+    <bpmn:sendTask id="Task_1" name="Send order" />
+    <bpmn:endEvent id="End_1" />
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="End_1" />
+  </bpmn:process>
+  <bpmn:process id="Process_2">
+    <bpmn:startEvent id="Start_2" />
+    <bpmn:endEvent id="End_2" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Start_2" targetRef="End_2" />
+  </bpmn:process>
+  <bpmn:messageFlow id="Msg_1" sourceRef="Task_1" targetRef="Start_2" messageRef="Message_1" />
+</bpmn:definitions>
+"""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bpmn_path = pathlib.Path(tmp_dir) / "message_name.bpmn"
+            bpmn_path.write_text(bpmn, encoding="utf-8")
+            model = parse_bpmn(bpmn_path)
+            net = convert_bpmn_to_pn(model)
+
+        self.assertEqual(model.message_flows["Msg_1"].name, "order-to-ffw")
+        self.assertEqual(net.places["Msg_1"].name, "order-to-ffw")
+
+    def test_camunda_all_bpmn_shape_and_start_tokens(self):
+        from bpmn2pnml_local import convert_bpmn_to_pn, parse_bpmn
+
+        base_dir = pathlib.Path(__file__).resolve().parents[1]
+        bpmn_path = base_dir / "Camunda-all-main" / "merged_code" / "bpmn" / "all.bpmn"
+        model = parse_bpmn(bpmn_path)
+        net = convert_bpmn_to_pn(model)
+
+        self.assertEqual(len(model.process_ids), 9)
+        self.assertEqual(len(model.message_flows), 25)
+        task_types = {node.task_type for node in model.nodes.values() if node.task_type}
+        self.assertEqual(len(task_types), 29)
+
+        initial_places = {pid for pid, place in net.places.items() if place.tokens == 1}
+        self.assertEqual(
+            initial_places,
+            {
+                "start_p_Process_1n9bswo",
+                "start_p_Process_Customs",
+                "start_p_Process_CT",
+                "start_p_Process_Transport",
+            },
+        )
 
     def test_subprocess_is_flattened(self):
         from bpmn2pnml_local import convert_bpmn_to_pn, parse_bpmn

@@ -21,4 +21,11 @@ ENV/
 # Local tooling and generated traces
 .tools/
 docs/verification/pizza_official_real/
+docs/verification/tmp_formula_check*/
+docs/verification/pizza_coursework/
+properties/pizza_coursework/
+Camunda-all-main/C*/
+Camunda-all-main/Collaboration.pdf
+Camunda-all-main/*.docx
+Camunda-all-main/**/node_modules/
 *.trc

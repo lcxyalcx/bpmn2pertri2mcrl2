@@ -1,0 +1,2 @@
+% Message causality: Freight Forwarder cannot receive the order before Owner publishes order-to-ffw.
+[(!order_to_ffw)*.order_received]false

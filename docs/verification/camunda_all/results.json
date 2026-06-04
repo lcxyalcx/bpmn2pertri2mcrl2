@@ -1,0 +1,225 @@
+{
+  "input_bpmn": "Camunda-all-main/merged_code/bpmn/all.bpmn",
+  "pnml": "docs/verification/camunda_all/camunda_all.pnml",
+  "bounded_model": "docs/verification/camunda_all/camunda_all_bounded.mcrl2",
+  "max_place_tokens": 1,
+  "max_lts_states": 2000,
+  "lps": "docs/verification/camunda_all/camunda_all_bounded.lps",
+  "lts": "docs/verification/camunda_all/camunda_all_bounded.lts",
+  "lts_dot": "docs/verification/camunda_all/camunda_all_bounded_lts.dot",
+  "lts_aut": "docs/verification/camunda_all/camunda_all_bounded_lts.aut",
+  "lts_svg": "docs/verification/camunda_all/camunda_all_bounded_lts.svg",
+  "summary_svg": "docs/verification/camunda_all/camunda_all_verification_summary.svg",
+  "lts_info": {
+    "Number of states": "2001",
+    "Number of action labels": "12 (including a tau label)",
+    "Number of transitions": "2000",
+    "Number of state labels": "2001",
+    "LTS is deterministic": "yes",
+    "This lts has no probabilistic states": "yes"
+  },
+  "properties": [
+    {
+      "file": "properties/camunda_all/order_to_ffw_reachable.mcf",
+      "pbes": "docs/verification/camunda_all/order_to_ffw_reachable_lts.pbes",
+      "backend": "lts2pbes+pbes2bool",
+      "title": "Order reaches freight forwarder",
+      "action": "order_to_ffw",
+      "passed": true,
+      "expected": true,
+      "matches_expected": true,
+      "note": "Owner can publish order-to-ffw.",
+      "solver_output": "true"
+    },
+    {
+      "file": "properties/camunda_all/customs_clearance_to_terminal_reachable.mcf",
+      "pbes": "docs/verification/camunda_all/customs_clearance_to_terminal_reachable_lts.pbes",
+      "backend": "lts2pbes+pbes2bool",
+      "title": "Customs clearance reaches terminal",
+      "action": "customs_clearance_to_terminal",
+      "passed": false,
+      "expected": false,
+      "matches_expected": true,
+      "note": "Not observed within the default 2000-state partial LTS; increase --max-lts-states or run a dedicated solver check for deeper reachability.",
+      "solver_output": "false"
+    },
+    {
+      "file": "properties/camunda_all/ctn_to_owner_reachable.mcf",
+      "pbes": "docs/verification/camunda_all/ctn_to_owner_reachable_lts.pbes",
+      "backend": "lts2pbes+pbes2bool",
+      "title": "Container reaches owner",
+      "action": "ctn_to_owner",
+      "passed": false,
+      "expected": false,
+      "matches_expected": true,
+      "note": "Not observed within the default 2000-state partial LTS; increase --max-lts-states or run a dedicated solver check for deeper reachability.",
+      "solver_output": "false"
+    },
+    {
+      "file": "properties/camunda_all/ship_departure_notification_reachable.mcf",
+      "pbes": "docs/verification/camunda_all/ship_departure_notification_reachable_lts.pbes",
+      "backend": "lts2pbes+pbes2bool",
+      "title": "Ship departure notification is reachable",
+      "action": "ship_departure_notification",
+      "passed": false,
+      "expected": false,
+      "matches_expected": true,
+      "note": "Not observed within the default 2000-state partial LTS; increase --max-lts-states or run a dedicated solver check for deeper reachability.",
+      "solver_output": "false"
+    },
+    {
+      "file": "properties/camunda_all/payment_reachable.mcf",
+      "pbes": "docs/verification/camunda_all/payment_reachable_lts.pbes",
+      "backend": "lts2pbes+pbes2bool",
+      "title": "Payment is reachable",
+      "action": "payment",
+      "passed": false,
+      "expected": false,
+      "matches_expected": true,
+      "note": "Not observed within the default 2000-state partial LTS; increase --max-lts-states or run a dedicated solver check for deeper reachability.",
+      "solver_output": "false"
+    },
+    {
+      "file": "properties/camunda_all/joined_end_reachable.mcf",
+      "pbes": "docs/verification/camunda_all/joined_end_reachable_lts.pbes",
+      "backend": "lts2pbes+pbes2bool",
+      "title": "Joined end is reachable",
+      "action": "a_end",
+      "passed": false,
+      "expected": false,
+      "matches_expected": true,
+      "note": "Not observed within the default 2000-state partial LTS; this full-system end is expected to require deeper exploration.",
+      "solver_output": "false"
+    },
+    {
+      "file": "properties/camunda_all/order_to_ffw_requires_handle_order.mcf",
+      "pbes": "docs/verification/camunda_all/order_to_ffw_requires_handle_order_lts.pbes",
+      "backend": "lts2pbes+pbes2bool",
+      "title": "Order-to-FFW requires handle-order",
+      "action": "handle_order -> order_to_ffw",
+      "passed": true,
+      "expected": true,
+      "matches_expected": true,
+      "note": "No explored path publishes order-to-ffw before handle-order.",
+      "solver_output": "true"
+    },
+    {
+      "file": "properties/camunda_all/order_received_requires_order_to_ffw.mcf",
+      "pbes": "docs/verification/camunda_all/order_received_requires_order_to_ffw_lts.pbes",
+      "backend": "lts2pbes+pbes2bool",
+      "title": "Order received requires order-to-FFW",
+      "action": "order_to_ffw -> order_received",
+      "passed": true,
+      "expected": true,
+      "matches_expected": true,
+      "note": "No explored path reaches order-received before order-to-ffw.",
+      "solver_output": "true"
+    },
+    {
+      "file": "properties/camunda_all/parallel_gateway_order_a_before_b.mcf",
+      "pbes": "docs/verification/camunda_all/parallel_gateway_order_a_before_b_lts.pbes",
+      "backend": "lts2pbes+pbes2bool",
+      "title": "Gateway 0ujvw7r can precede gateway 1mop6g2",
+      "action": "parallel_gateway_gateway_0ujvw7r -> parallel_gateway_gateway_1mop6g2",
+      "passed": true,
+      "expected": true,
+      "matches_expected": true,
+      "note": "The bounded LTS contains one behavior where gateway 0ujvw7r occurs before gateway 1mop6g2.",
+      "solver_output": "true"
+    },
+    {
+      "file": "properties/camunda_all/parallel_gateway_order_b_before_a.mcf",
+      "pbes": "docs/verification/camunda_all/parallel_gateway_order_b_before_a_lts.pbes",
+      "backend": "lts2pbes+pbes2bool",
+      "title": "Gateway 1mop6g2 can precede gateway 0ujvw7r",
+      "action": "parallel_gateway_gateway_1mop6g2 -> parallel_gateway_gateway_0ujvw7r",
+      "passed": true,
+      "expected": true,
+      "matches_expected": true,
+      "note": "The bounded LTS also contains the reverse order, so observers must not assume a fixed order between these parallel gateway effects.",
+      "solver_output": "true"
+    }
+  ],
+  "customs_witnesses": [
+    {
+      "action": "manifest_received",
+      "title": "Customs receives manifest",
+      "passed": true,
+      "state_index": 172,
+      "backend": "lps2lts --action --trace=1 --strategy=depth",
+      "note": "One of the three customs synchronization inputs is reachable with targeted depth-first exploration.",
+      "tool_exit_code": 1,
+      "tool_output": "Action 'manifest_received' found (state index: 172)no transition found in find_action"
+    },
+    {
+      "action": "ctn_and_ship_arrive",
+      "title": "Customs receives container and ship arrival",
+      "passed": true,
+      "state_index": 202,
+      "backend": "lps2lts --action --trace=1 --strategy=depth",
+      "note": "The terminal arrival input for the customs synchronization point is reachable.",
+      "tool_exit_code": 1,
+      "tool_output": "Action 'ctn_and_ship_arrive' found (state index: 202)no transition found in find_action"
+    },
+    {
+      "action": "declaration_received",
+      "title": "Customs receives declaration",
+      "passed": true,
+      "state_index": 172,
+      "backend": "lps2lts --action --trace=1 --strategy=depth",
+      "note": "The broker declaration input for the customs synchronization point is reachable.",
+      "tool_exit_code": 1,
+      "tool_output": "Action 'declaration_received' found (state index: 172)no transition found in find_action"
+    },
+    {
+      "action": "clearance_to_broker",
+      "title": "Customs sends clearance to broker",
+      "passed": true,
+      "state_index": 177,
+      "backend": "lps2lts --action --trace=1 --strategy=depth",
+      "note": "The broker-facing customs clearance response is reachable.",
+      "tool_exit_code": 1,
+      "tool_output": "Action 'clearance_to_broker' found (state index: 177)no transition found in find_action"
+    },
+    {
+      "action": "inspection_appointment",
+      "title": "Broker sends inspection appointment",
+      "passed": true,
+      "state_index": 181,
+      "backend": "lps2lts --action --trace=1 --strategy=depth",
+      "note": "The broker-side follow-up after customs clearance-to-broker is reachable.",
+      "tool_exit_code": 1,
+      "tool_output": "Action 'inspection_appointment' found (state index: 181)no transition found in find_action"
+    },
+    {
+      "action": "ciq",
+      "title": "Customs CIQ check is reachable",
+      "passed": true,
+      "state_index": 204,
+      "backend": "lps2lts --action --trace=1 --strategy=depth",
+      "note": "After the customs synchronization point, CIQ can execute.",
+      "tool_exit_code": 1,
+      "tool_output": "Action 'ciq' found (state index: 204)no transition found in find_action"
+    },
+    {
+      "action": "inspection",
+      "title": "Customs inspection is reachable",
+      "passed": true,
+      "state_index": 205,
+      "backend": "lps2lts --action --trace=1 --strategy=depth",
+      "note": "The customs inspection step after CIQ can execute.",
+      "tool_exit_code": 1,
+      "tool_output": "Action 'inspection' found (state index: 205)no transition found in find_action"
+    },
+    {
+      "action": "customs_clearance_to_terminal",
+      "title": "Customs clearance reaches terminal",
+      "passed": true,
+      "state_index": 206,
+      "backend": "lps2lts --action --trace=1 --strategy=depth",
+      "note": "The terminal-facing customs clearance output is reachable with targeted depth-first exploration.",
+      "tool_exit_code": 1,
+      "tool_output": "Action 'customs_clearance_to_terminal' found (state index: 206)no transition found in find_action"
+    }
+  ]
+}

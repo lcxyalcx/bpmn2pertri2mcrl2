@@ -167,6 +167,21 @@ python scripts/verify_workflow.py examples/pizza_official.bpmn --max-place-token
 python scripts/check_pizza_official.py
 ```
 
+Camunda 合并版协作流程预置脚本：
+
+```bash
+python scripts/check_bpmn_compatibility.py Camunda-all-main/merged_code/bpmn/all.bpmn
+python scripts/check_camunda_all.py
+```
+
+Windows 下如果 `python` 指向 WindowsApps stub，可直接使用仓库包装脚本：
+
+```powershell
+.\scripts\check_camunda_all.ps1
+```
+
+`check_camunda_all.py` 会将 `Camunda-all-main/merged_code/bpmn/all.bpmn` 转为 PNML 和 bounded mCRL2，并生成 LPS/LTS/AUT/DOT/SVG、基于 `lts2pbes + pbes2bool` 的公式检查结果和 Markdown/JSON 报告。输出目录固定为 `docs/verification/camunda_all/`，性质文件位于 `properties/camunda_all/`。
+
 该脚本会生成：
 
 - `docs/verification/pizza_official/pizza_official_bounded.mcrl2`：用于穷尽 LTS 的 bounded 模型
@@ -288,6 +303,8 @@ $$
 | `bpmn2mcrl2_web.py` | BPMN → PNML → mCRL2（bpmn2petrinet.com 网页自动化） |
 | `scripts/check_bpmn_compatibility.py` | BPMN 兼容性扫描 |
 | `scripts/check_pizza_official.py` | 官方 Pizza modal formula / LTS 验证 |
+| `scripts/check_camunda_all.py` | Camunda 合并版 all.bpmn bounded LTS 与关键 action 检查 |
+| `scripts/check_camunda_all.ps1` | Windows 包装入口，优先使用本地 `.tools/python313/python.exe` |
 | `scripts/verify_workflow.py` | 通用 BPMN / PNML / mCRL2 验证与 LTS 可视化 |
 | `scripts/verification_utils.py` | 验证与 LTS SVG 共用工具函数 |
 | `scripts/compare_pizza_local_vs_web.py` | 本地 vs 网页转换对照 |
@@ -297,6 +314,8 @@ $$
 | `examples/pizza_official_local.mcrl2` | 本地语义 mCRL2 输出 |
 | `docs/compatibility/` | 兼容性验证报告与 JSON 结果 |
 | `docs/verification/pizza_official/` | bounded LTS、性质验证结果 |
+| `docs/verification/camunda_all/` | Camunda 合并版 bounded LTS、性质验证结果 |
+| `properties/camunda_all/` | Camunda 合并版性质公式 |
 | `tests/test_converter.py` | 单元测试（含兼容性检查） |
 
 ## 📚 更多文档

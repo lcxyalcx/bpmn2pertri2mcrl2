@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="850" viewBox="0 0 980 850">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="32" y="42" font-family="Helvetica" font-size="24" font-weight="700">Camunda all.bpmn verification summary</text>
+<text x="32" y="70" font-family="Helvetica" font-size="14" fill="#475569">Default checks scan the generated partial bounded LTS; deeper properties may require a higher state limit.</text>
+<rect x="32" y="98" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="120" font-family="Helvetica" font-size="15" font-weight="700">Order reaches freight forwarder</text>
+<text x="52" y="140" font-family="Helvetica" font-size="13" fill="#334155">result=true · expected=true · Owner can publish order-to-ffw.</text>
+<rect x="32" y="172" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="194" font-family="Helvetica" font-size="15" font-weight="700">Customs clearance reaches terminal</text>
+<text x="52" y="214" font-family="Helvetica" font-size="13" fill="#334155">result=false · expected=false · Not observed within the default 2000-state partial LTS; increase --max-lts-states or run a dedicated solver check for deeper reachability.</text>
+<rect x="32" y="246" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="268" font-family="Helvetica" font-size="15" font-weight="700">Container reaches owner</text>
+<text x="52" y="288" font-family="Helvetica" font-size="13" fill="#334155">result=false · expected=false · Not observed within the default 2000-state partial LTS; increase --max-lts-states or run a dedicated solver check for deeper reachability.</text>
+<rect x="32" y="320" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="342" font-family="Helvetica" font-size="15" font-weight="700">Ship departure notification is reachable</text>
+<text x="52" y="362" font-family="Helvetica" font-size="13" fill="#334155">result=false · expected=false · Not observed within the default 2000-state partial LTS; increase --max-lts-states or run a dedicated solver check for deeper reachability.</text>
+<rect x="32" y="394" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="416" font-family="Helvetica" font-size="15" font-weight="700">Payment is reachable</text>
+<text x="52" y="436" font-family="Helvetica" font-size="13" fill="#334155">result=false · expected=false · Not observed within the default 2000-state partial LTS; increase --max-lts-states or run a dedicated solver check for deeper reachability.</text>
+<rect x="32" y="468" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="490" font-family="Helvetica" font-size="15" font-weight="700">Joined end is reachable</text>
+<text x="52" y="510" font-family="Helvetica" font-size="13" fill="#334155">result=false · expected=false · Not observed within the default 2000-state partial LTS; this full-system end is expected to require deeper exploration.</text>
+<rect x="32" y="542" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="564" font-family="Helvetica" font-size="15" font-weight="700">Order-to-FFW requires handle-order</text>
+<text x="52" y="584" font-family="Helvetica" font-size="13" fill="#334155">result=true · expected=true · No explored path publishes order-to-ffw before handle-order.</text>
+<rect x="32" y="616" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="638" font-family="Helvetica" font-size="15" font-weight="700">Order received requires order-to-FFW</text>
+<text x="52" y="658" font-family="Helvetica" font-size="13" fill="#334155">result=true · expected=true · No explored path reaches order-received before order-to-ffw.</text>
+<rect x="32" y="690" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="712" font-family="Helvetica" font-size="15" font-weight="700">Gateway 0ujvw7r can precede gateway 1mop6g2</text>
+<text x="52" y="732" font-family="Helvetica" font-size="13" fill="#334155">result=true · expected=true · The bounded LTS contains one behavior where gateway 0ujvw7r occurs before gateway 1mop6g2.</text>
+<rect x="32" y="764" width="916" height="54" rx="8" fill="#dcfce7" stroke="#16a34a"/>
+<text x="52" y="786" font-family="Helvetica" font-size="15" font-weight="700">Gateway 1mop6g2 can precede gateway 0ujvw7r</text>
+<text x="52" y="806" font-family="Helvetica" font-size="13" fill="#334155">result=true · expected=true · The bounded LTS also contains the reverse order, so observers must not assume a fixed order between these parallel gateway effects.</text>
+</svg>

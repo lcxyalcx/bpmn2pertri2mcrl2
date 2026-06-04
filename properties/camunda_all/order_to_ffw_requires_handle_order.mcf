@@ -1,0 +1,2 @@
+% Safety: Owner cannot publish order-to-ffw before handle-order has occurred.
+[(!handle_order)*.order_to_ffw]false

@@ -87,6 +87,15 @@ def _strip_namespace(tag: str) -> str:
     return tag.split("}", 1)[1] if "}" in tag else tag
 
 
+def _display_path(path: pathlib.Path) -> str:
+    resolved = path.resolve()
+    return (
+        resolved.relative_to(ROOT).as_posix()
+        if resolved.is_relative_to(ROOT)
+        else str(resolved).replace("\\", "/")
+    )
+
+
 def _find_bpmn_files(paths: list[pathlib.Path]) -> list[pathlib.Path]:
     files: list[pathlib.Path] = []
     for path in paths:
@@ -428,8 +437,8 @@ def main() -> None:
     write_markdown(reports, md_path)
 
     print(json.dumps(payload["summary"], indent=2))
-    print(f"Report written to {json_path.relative_to(ROOT)}")
-    print(f"Report written to {md_path.relative_to(ROOT)}")
+    print(f"Report written to {_display_path(json_path)}")
+    print(f"Report written to {_display_path(md_path)}")
     raise SystemExit(0 if payload["summary"]["incompatible"] == 0 else 1)
 
 

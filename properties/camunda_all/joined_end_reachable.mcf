@@ -1,0 +1,4 @@
+% All participant processes can reach the synthetic joined end transition in the intended process.
+% The default check_camunda_all.py run solves this over the generated
+% 2000-state partial bounded LTS.
+<true*.a_end>true

@@ -26,6 +26,7 @@ class BpmnNode:
     process_id: str | None
     original_tag: str
     attached_to: str | None = None
+    task_type: str | None = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -156,6 +157,8 @@ def _normalize_flow_node_tag(tag: str) -> str:
 
 
 def _display_name(node: BpmnNode) -> str:
+    if node.task_type:
+        return node.task_type
     if node.name:
         return node.name
     if node.tag == "parallelGateway":
@@ -228,6 +231,12 @@ def _parse_container(
             if not nid:
                 continue
             normalized = _normalize_flow_node_tag(child_tag)
+            task_definition = child.find(".//{*}taskDefinition")
+            task_type = (
+                task_definition.attrib.get("type", "").strip()
+                if task_definition is not None
+                else ""
+            )
             nodes[nid] = BpmnNode(
                 nid=nid,
                 tag=normalized,
@@ -235,6 +244,7 @@ def _parse_container(
                 process_id=process_id,
                 original_tag=child_tag,
                 attached_to=child.attrib.get("attachedToRef") or None,
+                task_type=task_type or None,
             )
             if child.find(".//{*}multiInstanceLoopCharacteristics") is not None:
                 warnings.append(
@@ -316,8 +326,17 @@ def parse_bpmn(path: pathlib.Path) -> BpmnModel:
     process_ids: list[str] = []
     sequence_flows: dict[str, Flow] = {}
     message_flows: dict[str, Flow] = {}
+    messages: dict[str, str] = {}
     containers: dict[str, ContainerInfo] = {}
     warnings: list[str] = []
+
+    for elem in root.iter():
+        if _strip_namespace(elem.tag) != "message":
+            continue
+        mid = elem.attrib.get("id", "")
+        name = elem.attrib.get("name", "").strip()
+        if mid and name:
+            messages[mid] = name
 
     for process in root.iter():
         if _strip_namespace(process.tag) != "process":
@@ -336,9 +355,10 @@ def parse_bpmn(path: pathlib.Path) -> BpmnModel:
         source = elem.attrib.get("sourceRef", "")
         target = elem.attrib.get("targetRef", "")
         if fid and source and target:
+            message_name = messages.get(elem.attrib.get("messageRef", ""), "")
             message_flows[fid] = Flow(
                 fid=fid,
-                name=elem.attrib.get("name", "").strip() or fid,
+                name=elem.attrib.get("name", "").strip() or message_name or fid,
                 source=source,
                 target=target,
             )

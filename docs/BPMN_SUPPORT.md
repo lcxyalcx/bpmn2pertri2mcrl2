@@ -25,6 +25,20 @@
 
 ---
 
+## Camunda / Zeebe 扩展
+
+Camunda 8 的 Zeebe 扩展不会改变控制流语义，但转换器会读取其中可用于命名的元数据：
+
+| 扩展 | 当前处理 |
+| --- | --- |
+| `zeebe:taskDefinition/@type` | 优先用 task type 作为 task transition label 和 mCRL2 action 来源，使 Camunda worker 契约成为稳定验证名 |
+| `bpmn:message/@name` | 当 `messageFlow` 自身没有 `name` 时，用 `messageRef` 指向的 message name 作为 message place label |
+| Camunda 变量 / `orderId` / REST 或 gRPC 配置 | 不建模；消息相关性抽象为 Petri-net message place |
+
+Plain start event 对应流程初始 token；message start event 只有收到上游 gating message place 后才能启动。
+
+---
+
 ## 近似处理（⚠️ 可转换但语义简化）
 
 | 场景 | 行为 |
